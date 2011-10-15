@@ -1,0 +1,47 @@
+[
+    {
+        "pk": 1, 
+        "model": "cannula.permission", 
+        "fields": {
+            "active": true,
+            "default": false,
+            "perm": "admin"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "cannula.permission", 
+        "fields": {
+            "active": true,
+            "default": true,
+            "perm": "deploy"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "cannula.permission", 
+        "fields": {
+            "active": true,
+            "default": true,
+            "perm": "write"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "cannula.permission", 
+        "fields": {
+            "active": true,
+            "default": true,
+            "perm": "read"
+        }
+    },
+    {
+        "pk": 5, 
+        "model": "cannula.permission", 
+        "fields": {
+            "active": true, 
+            "default": true,
+            "perm": "create"
+        }
+    }
+]

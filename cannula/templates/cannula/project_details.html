@@ -1,0 +1,119 @@
+{% extends "cannula/base.html" %}
+
+{% block extrahead %}
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+  <h2>{{ project }}</h2>
+  {% if project.description %}<div class="description">{{ project.description }}</div>{% endif %}
+  <table width="100%">
+     <thead>
+       <tr>
+         <th>Cluster</th>
+         <th>Repository</th>
+         <th>Revision</th>
+         <th>Tools</th>
+         <th>Update</th>
+         <th>Status</th>
+         {% if is_admin %}<th>Processes</th>{% endif %}
+         <th colspan="3">Actions</th>
+         <th>Last Update</th>
+         <th>Delete</th>
+       </tr>
+     </thead>
+     <tbody>
+        {% if not applications %}
+        <tr><td colspan="11"><a class="addlink" href="{% url deploy-application group.abbr,project.abbr %}">Add Deployment</a></td></tr>
+        {% endif %}
+        {% for app in applications %}
+        <tr id="{{ app.cluster.name }}_row" class="{{ app.status }}">
+            <th><a href="{{ app.remote_url }}" target="_blank">{{ app.cluster }}</a></th>
+            <td><a href="{{ app.project.repo.url }}{{ app.repo_path }}" target="_blank">{{ app.repo_path }}</a></td>
+            <td><div id="{{ app.cluster }}_revision">
+                    {% firstof app.revision "HEAD" %}
+                </div>
+            </td>
+            <td>{{ app.deployable_package.name }}</td>
+            <td>
+                <form action="{% url deploy-application group.abbr,project.abbr %}" method="get">
+                    <input type="hidden" name="stage" value="{{ app.cluster.abbr }}" />
+                    <input type="submit" value="update" />
+                </form>
+            </td>
+            <td><div id="{{ app.cluster }}_status">{{ app.status }}</div></td>
+            {% if is_admin %}
+            <td>{{ app.num_processes }}</td>
+            {% endif %}
+            <!-- actions -->
+            {% with app.cluster as zone %}
+            {% endwith %}
+            <form id="{{ app.cluster }}_action_form" action="{% url control-application group.abbr,project.abbr,app.cluster.abbr %}" method="post">
+               {% csrf_token %}
+               <td><input id="{{ app.cluster }}_start_btn" type="submit" name="action" value="start" {% ifequal app.status "Up" %}disabled="true" {% endifequal %}/></td>
+               <td><input id="{{ app.cluster }}_stop_btn" type="submit" name="action" value="stop"  {% ifequal app.status "Down" %}disabled="true" {% endifequal %}/></td>
+               <td><input id="{{ app.cluster }}_restart_btn" type="submit" name="action" value="restart" {% ifequal app.status "Down" %}disabled="true" {% endifequal %}/></td>
+            </form>
+            <td>
+              <div id="{{ app.cluster }}_last_update">
+                  {{ app.last_update }}
+              </div>
+            </td>
+            <td>
+                <form action="{% url delete-application group.abbr,project.abbr,app.cluster.abbr %}" method="get">
+                    <input type="submit" value="delete" />
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+
+<h2>Deployment History ({{ logs.paginator.count }} results found)</h2>
+{% if logs.paginator.count %}
+<table>
+<thead>
+<tr>
+    <th>Time</th>
+    <th>User</th>
+    <th>Stage(s)</th>
+    <th>Action</th>
+</tr>
+</thead>
+<tbody>
+{% for log in logs.object_list %}
+<tr>
+    <td>{{ log.timestamp|date }} {{ log.timestamp|time }}</td>
+    <td>{{ log.user.get_full_name }} ({{ log.user.username}})</td>
+    <td>{{ log.cluster }}</td>
+    <td>{{ log.message }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<div class="pagination">
+    <span class="step-links">
+        {% if logs.has_previous %}
+            <a href="?page={{ logs.previous_page_number }}">&laquo; previous</a>
+        {% endif %}
+
+        {% if logs.has_other_pages %}
+	        {% for i in logs.paginator.page_range %}
+	            {% if logs.number = i %}
+	                {{ i }}
+	            {% else %}
+	                <a href="?page={{i}}">{{ i }}</a>
+	            {% endif %}
+	        {% endfor %}
+        {% endif %}
+        
+        {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}">next &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% else %}
+<p>No history, would you like to make some?</p>
+{% endif %}
+{% endblock %}

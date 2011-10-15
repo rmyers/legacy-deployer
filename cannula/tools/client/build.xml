@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Client Broker" default="dist" basedir=".">
+    <description>clientbroker build file</description>
+    <!-- set global properties for this build -->
+    <property name="src" location="edu/utexas/its/clientbroker" />
+    <property name="build" location="build" />
+    <property name="dist" location="dist" />
+    <property name="jarfiles" location="jars" />
+	<property name="version" value="1.2" />
+
+    <target name="init">
+        <!-- Create the time stamp -->
+        <tstamp />
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${build}" />
+        <!-- Unjar all the jar files needed into build -->
+        
+        <unjar src="${jarfiles}/entirex-7.jar" dest="${build}" />
+        <unjar src="${jarfiles}/jetty-6.1.11.jar" dest="${build}" />
+        <unjar src="${jarfiles}/jetty-util-6.1.11.jar" dest="${build}" />
+        <unjar src="${jarfiles}/servlet-api-2.5-6.1.11.jar" dest="${build}" />
+        <unjar src="${jarfiles}/utbroker_2008_05_06.jar" dest="${build}" />
+    	<unjar src="${jarfiles}/commons-codec-1.4.jar" dest="${build}" />
+       
+    </target>
+
+    <target name="compile" depends="init" description="compile the source ">
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src}" 
+            source="1.5" 
+            target="1.5" 
+            destdir="${build}" />
+            <!-- classpath="${jarfiles}/entirex-7.jar:${jarfiles}/jetty-6.1.11.jar:${jarfiles}/jetty-util-6.1.11.jar:${jarfiles}/servlet-api-2.5-6.1.11.jar" -->
+    </target>
+
+    <target name="dist" depends="compile" description="generate the distribution">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}" />
+
+        <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+        <jar jarfile="${dist}/clientbroker-${version}.jar" basedir="${build}" excludes="META-INF/**">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}" />
+                <attribute name="Implementation-Title" value="ClientBroker" />
+                <attribute name="Implementation-Version" value="${version}" />
+                <attribute name="Main-Class" value="edu.utexas.its.clientbroker.Main" /> 
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="clean" description="clean up">
+        <!-- Delete the ${build} directory trees -->
+        <delete dir="${build}" />
+    </target>
+</project>

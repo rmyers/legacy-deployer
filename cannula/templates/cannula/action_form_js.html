@@ -1,0 +1,57 @@
+<script type="text/javascript">
+// prepare the form when the DOM is ready 
+$(document).ready(function() { 
+    var options = { 
+        beforeSubmit:  show{{ zone }}Request,  // pre-submit callback 
+        success:       show{{ zone }}Response,  // post-submit callback 
+        dataType:  'json',       // 'xml', 'script', or 'json' (expected server response type) 
+        //timeout:   3000,
+    }; 
+ 	// bind form using 'ajaxForm' 
+    $('#{{ zone }}_action_form').ajaxForm(options);
+}); 
+ 
+// pre-submit callback 
+function show{{ zone }}Request(formData, jqForm, options) {
+	var action;
+	for (i=0; i < formData.length; i++) {
+		if ( formData[i].name == 'action' ){
+			if (formData[i].value == 'stop' ) {
+				action = 'stopping...';
+			} else {
+				action = formData[i].value + 'ing...';
+			}
+		}
+	}
+    $("#{{ zone }}_stop_btn").attr('disabled', 'disabled');
+    $("#{{ zone }}_start_btn").attr('disabled', 'disabled');
+    $("#{{ zone }}_restart_btn").attr('disabled', 'disabled');
+    // change the row to run 
+    $("#{{ zone }}_row").fadeTo('slow', 0.33);
+    
+    
+    //$("#{{ zone }}_row").addClass('run');
+    $("#{{ zone }}_status").html(action);
+    // here we could return false to prevent the form from being submitted; 
+    // returning anything other than false will allow the form submit to continue 
+    return true; 
+} 
+ 
+// post-submit callback 
+function show{{ zone }}Response(resp, statusText)  { 
+    if (resp.status == 'Up') {
+    	$("#{{ zone }}_stop_btn").attr('disabled', '');
+    	$("#{{ zone }}_restart_btn").attr('disabled', '');
+    }
+    if (resp.status == 'Down') {
+    	$("#{{ zone }}_start_btn").attr('disabled', '');
+    }
+    // change the row to the current status
+    $("#{{ zone }}_row").removeClass('Up');
+    $("#{{ zone }}_row").removeClass('Down');
+    $("#{{ zone }}_row").fadeTo('slow', 1.00);
+    $("#{{ zone }}_row").addClass(resp.status);
+    $("#{{ zone }}_status").html(resp.status);
+    $("#{{ zone }}_last_update").html(resp.last_update);
+} 
+</script>

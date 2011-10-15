@@ -1,0 +1,108 @@
+[
+    {
+        "pk": 1, 
+        "model": "cannula.group", 
+        "fields": {
+            "date_created": "2010-07-23", 
+            "desc": "Totally awesome group. We bring out the best in the web today!", 
+            "name": "Super Awesome Group", 
+            "abbr": "sag"
+        }
+    },
+    {
+        "pk": 1, 
+        "model": "cannula.membership", 
+        "fields": {
+            "date_joined": "2010-07-23", 
+            "group": 1, 
+            "user": 5, 
+            "permission": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "cannula.membership", 
+        "fields": {
+            "date_joined": "2010-07-23", 
+            "group": 1, 
+            "user": 2, 
+            "permission": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "cannula.membership", 
+        "fields": {
+            "date_joined": "2010-07-23", 
+            "group": 1, 
+            "user": 3, 
+            "permission": 4
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "cannula.membership", 
+        "fields": {
+            "date_joined": "2010-07-23", 
+            "group": 1, 
+            "user": 4, 
+            "permission": 3
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "cannula.project", 
+        "fields": {
+            "group": 1, 
+            "name": "Project One", 
+            "url": "", 
+            "repo": null, 
+            "abbr": "proj1", 
+            "date_created": "2010-07-23", 
+            "desc": "The first and foremost project."
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "cannula.project", 
+        "fields": {
+            "group": 1, 
+            "name": "Project Two", 
+            "url": "", 
+            "repo": null, 
+            "abbr": "proj2", 
+            "date_created": "2010-07-23", 
+            "desc": "The next installment of greatness. Test of extended permissions."
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "cannula.projectmembership", 
+        "fields": {
+            "project": 2, 
+            "date_joined": "2010-07-23", 
+            "user": 3, 
+            "permission": 3
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "cannula.projectmembership", 
+        "fields": {
+            "project": 2, 
+            "date_joined": "2010-07-23", 
+            "user": 4, 
+            "permission": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "cannula.projectmembership", 
+        "fields": {
+            "project": 2, 
+            "date_joined": "2010-07-23", 
+            "user": 2, 
+            "permission": 1
+        }
+    }
+]

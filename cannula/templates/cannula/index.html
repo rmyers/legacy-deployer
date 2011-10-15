@@ -1,0 +1,35 @@
+{%  extends "cannula/base.html" %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />{% endblock %}
+{% block coltype %}colMS{% endblock %}
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block content %}
+<h3>News Feed</h3>
+{% if news %}
+    {% for msg in news.object_list %}
+       <h3>{{ msg.message}}</h3>
+        	<p class="quiet tiny">{{ msg.timestamp|timesince:now }} ago by {{msg.user }}</p>	
+    {% endfor %}
+{% else %}
+	<p>No news for your groups/projects.</p>
+{% endif %}
+{% endblock %}
+
+
+{% block sidebar %}
+{% if groups %}
+{% for group in groups %}
+	<h3>{{ group }}</h3>
+	<ul>
+	{% for project in group.projects %}
+		<li><a href="{% url project-details group.abbr,project.abbr %}">{{ project }}</a></li>
+	{% endfor %}
+	{% if group in groups_create %}
+	    <li><a href="{% url create-project %}?group={{ group.abbr }}" class="addlink">Add Project</a></li>
+	{% endif %}
+	</ul>
+{% endfor %}
+{% else %}
+    <p>You are not in any groups.</p>
+{% endif %}
+{% endblock %}
