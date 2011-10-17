@@ -6,4 +6,4 @@ django-celery
 jinja2
 
 # The Deployr project itself
--e hg+http://bitbucket.org/rmyers/cannula#egg=cannula
+#-e hg+http://bitbucket.org/rmyers/cannula#egg=cannula
