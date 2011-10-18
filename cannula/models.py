@@ -7,7 +7,7 @@ class ProjectGroup(models.Model):
     group = models.ForeignKey(Group)
     
     def __unicode__(self):
-        return self.group
+        return self.group.name
 
 
 class Project(models.Model):
@@ -16,7 +16,7 @@ class Project(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User,
         help_text="User who created the project.")
-    group = models.ForeignKey(ProjectGroup, required=False,
+    group = models.ForeignKey(ProjectGroup, null=True, blank=True,
         help_text="(Optional) group that has access.")
 
     def __unicode__(self):
@@ -33,9 +33,9 @@ class Key(models.Model):
 class Profile(models.Model):
     
     user = models.ForeignKey(User)
-    twitter = models.CharField(max_length=255, required=False)
-    facebook = models.CharField(max_length=255, required=False)
-    ssh_keys = models.ManyToManyField(Keys)
+    twitter = models.CharField(max_length=255, blank=True)
+    facebook = models.CharField(max_length=255, blank=True)
+    ssh_keys = models.ManyToManyField(Key)
     
     def __unicode__(self):
         return self.user
