@@ -9,7 +9,7 @@ urlpatterns = patterns('',
         {'template_name': 'cannula/form.html'}),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout',
         {'template_name': 'cannula/logged_out.html'}),
-    (r'^accounts/profile/$', 'cannula.views.index'),
+    #(r'^accounts/profile/$', 'cannula.views.index'),
     # Uncomment the admin/doc line below to enable admin documentation:
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

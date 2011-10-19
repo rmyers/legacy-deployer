@@ -1,10 +1,12 @@
 from django.conf.urls.defaults import url, patterns
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
 from cannula.conf import api
+from cannula.views import Index
 
-urlpatterns = patterns('cannula.views',
-    url(r'^$', 'index', name='cannula-index'),
+urlpatterns = patterns('',
+    url(r'^$', login_required(Index.as_view()), name='cannula-index'),
     url(r'^create/group/$', api.groups.create_view, name='cannula-create-group'),
     url(r'^create/project/$', api.projects.create_view, name='create-project'),
     url(r'^groups/$', api.groups.list_view, name='cannula-groups'),

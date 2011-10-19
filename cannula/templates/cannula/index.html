@@ -4,25 +4,29 @@
 {% block bodyclass %}dashboard{% endblock %}
 
 {% block content %}
-<h3>News Feed</h3>
-{% if news %}
-    {% for msg in news.object_list %}
-       <h3>{{ msg.message}}</h3>
-        	<p class="quiet tiny">{{ msg.timestamp|timesince:now }} ago by {{msg.user }}</p>	
+<h3>My Projects</h3>
+{% if projects %}
+    {% for proj in projects %}
+       <h4>{{ proj.user.username }}/{{ proj }}</h4>
+        		
     {% endfor %}
 {% else %}
-	<p>No news for your groups/projects.</p>
+	<p>No projects yet.</p>
+	<p><a href="#">Create project</a></p>
 {% endif %}
 {% endblock %}
 
 
 {% block sidebar %}
 {% if groups %}
+<h3>Groups</h3>
 {% for group in groups %}
-	<h3>{{ group }}</h3>
+	<h4>{{ group }}</h4>
 	<ul>
-	{% for project in group.projects %}
-		<li><a href="{% url project-details group.abbr,project.abbr %}">{{ project }}</a></li>
+	{% for project in group.group.project_set.all %}
+	    {% if project not in projects %}
+		<li><a href="#">{{ project.user.username }}/{{ project }}</a></li>
+		{% endif %}
 	{% endfor %}
 	{% if group in groups_create %}
 	    <li><a href="{% url create-project %}?group={{ group.abbr }}" class="addlink">Add Project</a></li>
