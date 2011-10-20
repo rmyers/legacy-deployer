@@ -20,7 +20,6 @@ from django.contrib.admin.helpers import AdminForm
 
 log = getLogger('cannula.utils')
 
-
 def shell(command, cwd=None):
     log.debug('SHELL: %s' % command)
     process = Popen(command.strip(), stdout=PIPE, stderr=PIPE, shell=True, cwd=cwd)
@@ -121,3 +120,10 @@ def make_admin_form(form):
     if not hasattr(form, 'prepopulated_fields'):
         form.prepopulated_fields = {}
     return AdminForm(form, form.fieldsets, form.prepopulated_fields)
+
+
+def make_project(name):
+    """
+    Make the project on the file system.
+    """
+    

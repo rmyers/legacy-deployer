@@ -1,7 +1,26 @@
 from datetime import datetime
+import re
 
 from django.db import models
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
+PROJECT_RE = re.compile('^[a-zA-Z][-_a-zA-Z0-9]*$')
+
+RESERVED_WORDS = [
+    'project',
+    'group',
+    'admin',
+    'accounts'
+]
+
+def valid_name(name):
+    """Make sure project name does not have special chars or spaces."""
+    if not PROJECT_RE.match(name):
+        raise ValidationError("Must start with a letter and contain "
+            "only letters, numbers, underscore and dashes.")
+    if name in RESERVED_WORDS:
+        raise ValidationError("%s is a reserved name sorry." % name)
 
 class ProjectGroup(models.Model):
     """
@@ -11,13 +30,17 @@ class ProjectGroup(models.Model):
     Users can belong to multiple groups. But usually there is one 
     group per department.
     """
-    name = models.CharField(max_length=100, unique=True, db_index=True)
+    name = models.SlugField(max_length=100, unique=True, db_index=True,
+        validators=[valid_name])
     description = models.TextField(blank=True, null=True)
     members = models.ManyToManyField(User, through="GroupMembership")
     date_created = models.DateField(default=datetime.now)
     
     def __unicode__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        return '/%s/' % self.name
     
 class GroupMembership(models.Model):
     """
@@ -37,16 +60,30 @@ class GroupMembership(models.Model):
     
 class Project(models.Model):
     
-    name = models.CharField(max_length=255, unique=True, db_index=True)
+    name = models.SlugField(max_length=255, unique=True, db_index=True,
+        help_text="Project name, this should be a short and sweet "
+        "unique identifier. Must contain only lowercase letters, numbers,"
+        " underscores or hyphens",
+        validators=[valid_name])
+    title = models.CharField(max_length=255, unique=True, db_index=True,
+        help_text="Verbose name for this Project")
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User,
-        help_text="User who created the project.")
-    group = models.ForeignKey(ProjectGroup, null=True, blank=True,
-        help_text="(Optional) group that has access.")
+    group = models.ForeignKey(ProjectGroup,
+        help_text="Group that has access.")
     
     def __unicode__(self):
         return self.name
-
+    
+    def get_absolute_url(self):
+        return '/%s/%s/' % (self.group.name, self.name)
+    
+    def save(self, *args, **kwargs):
+        # Create the actual project repo/home dir
+        # If this fails bail early and don't create the database entry.
+        from cannula.projects import make_project
+        make_project(self.name, self.group.name)
+        return super(Project, self).save(*args, **kwargs)
+    
 class Key(models.Model):
     
     name = models.CharField(max_length=255)

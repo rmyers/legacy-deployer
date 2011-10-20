@@ -1,7 +1,9 @@
 
 import os
 
-from cannula.utils import import_object, add_blank_choice
+from cannula.utils import import_object
+
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 ##### Defaults #####################################################
 # Base directory where configuration files are placed.
@@ -12,13 +14,11 @@ CANNULA_BASE = '/cannula/'
 #     'cannula.proxy.apache'
 #     or roll your own and provide the dotted path here
 CANNULA_PROXY = 'cannula.proxy.nginx'
-# VCS options by default all that are supported by pip
-# http://pip.openplans.org/
-CANNULA_VCS_ENABLED = ('svn', 'git', 'hg', 'bzr')
+# Path to 'git' command
+CANNULA_GIT_CMD = 'git'
+CANNULA_GIT_TEMPLATES = os.path.join(CURRENT_DIR, 'templates', 'git')
 # Worker types enabled
-CANNULA_WORKERS_ENABLED = ('uwsgi', 'gunicorn', 'fastcgi')
-# Flavors (project types) enabled
-CANNULA_FLAVORS_ENABLED = ('Django', 'Pylons', 'Paste', 'PHP')
+CANNULA_WORKER = 'gunicorn'
 # API classes you can override a single one in django settings
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
@@ -51,29 +51,13 @@ if os.environ.get('DJANGO_SETTINGS_MODULE'):
     from django.conf import settings
     CANNULA_BASE = getattr(settings, 'CANNULA_BASE', CANNULA_BASE)
     CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', CANNULA_PROXY)
-    CANNULA_VCS_ENABLED = getattr(settings, 'CANNULA_VCS_ENABLED', CANNULA_VCS_ENABLED)
+    CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', CANNULA_GIT_CMD)
+    CANNULA_GIT_TEMPLATES = getattr(settings, 'CANNULA_GIT_TEMPLATES', CANNULA_GIT_TEMPLATES)
     CANNULA_CLUSTER_DEFAULTS = getattr(settings, 'CANNULA_CLUSTER_DEFAULTS', CANNULA_CLUSTER_DEFAULTS)
     CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', CANNULA_LOCK_TIMEOUT)
     # Update the api with user specified Classes.
-    _api = getattr(settings, 'CANNULA_BASE', {})
+    _api = getattr(settings, 'CANNULA_API', {})
     CANNULA_API.update(_api)
-
-# Make nicer choices for forms
-_vcs_name = {
-    'svn': 'Subversion',
-    'git': 'Git',
-    'hg': 'Mecurial',
-    'bzr': 'Bazaar',
-}
-
-# TODO: need a registry system
-VCS_CHOICES = add_blank_choice([(vcs, _vcs_name[vcs]) for vcs in CANNULA_VCS_ENABLED])
-WORKER_CHOICES = add_blank_choice([(w, w) for w in CANNULA_WORKERS_ENABLED]) 
-FLAVOR_CHOICES = add_blank_choice([(f.lower(), f) for f in CANNULA_FLAVORS_ENABLED])
-
-# TODO: Delete these
-METHOD_CHOICES = []
-PACKAGE_CHOICES = []
 
 class LazyAPI(object):
     
@@ -114,3 +98,7 @@ class API:
 
 api = API()
 proxy = import_object(CANNULA_PROXY)
+
+#TODO: delete these 
+WORKER_CHOICES = []
+VCS_CHOICES = []

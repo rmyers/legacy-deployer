@@ -6,9 +6,11 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.views.generic import TemplateView, DetailView
+from django.views.generic.base import TemplateResponseMixin, View, TemplateView
+from django.views.generic.edit import ModelFormMixin, CreateView
 
-from cannula.models import Profile, Project, Group, Key
+from cannula.models import Profile, Project, Key
+from cannula.forms import ProjectForm
 
 log = getLogger('cannula.views')
 
@@ -27,9 +29,22 @@ class Index(TemplateView):
             'title': "My Groups and Projects",
             'groups': groups,
             'groups_create': user.groupmembership_set.filter(can_add=True), 
-            'projects': user.project_set.all(),
             # Flag to disable breadcrumbs
             'home_page': True,
             'now': datetime.datetime.now(),
             'news': [],#TODO: make news
         })
+
+class CreateProject(CreateView):
+    
+    model = Project
+    form_class = ProjectForm
+    template_name = 'cannula/form.html'
+    
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instanciating the form.
+        """
+        kwargs = super(CreateProject, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs

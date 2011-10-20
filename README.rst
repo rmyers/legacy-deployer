@@ -14,7 +14,7 @@ Requirements
 
 * pyyaml
 * Django >= 1.3.1
-* gitolite
+* git
 * openssh
 
 Documentation 

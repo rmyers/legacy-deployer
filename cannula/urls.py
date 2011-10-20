@@ -3,12 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
 from cannula.conf import api
-from cannula.views import Index
+from cannula.views import Index, CreateProject
 
 urlpatterns = patterns('',
     url(r'^$', login_required(Index.as_view()), name='cannula-index'),
     url(r'^create/group/$', api.groups.create_view, name='cannula-create-group'),
-    url(r'^create/project/$', api.projects.create_view, name='create-project'),
+    url(r'^create/project/$', login_required(CreateProject.as_view()), 
+        name='create-project'),
     url(r'^groups/$', api.groups.list_view, name='cannula-groups'),
     url(r'^groups/(?P<group>[^/]*)/$', api.groups.details_view, name='group-details'),
     url(r'^groups/(?P<group>[^/]*)/__(?P<action>add|mod)/$', api.groups.mod_member_view, name='group-mod-member'),
