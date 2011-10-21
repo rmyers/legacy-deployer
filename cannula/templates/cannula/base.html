@@ -15,7 +15,7 @@
     {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
 </head>
 {% load i18n %}
-
+{% load gravatar %}
 <body class="{% block bodyclass %}{% endblock %}">
     <!-- Header -->
     <div id="header" class="ui-widget-header">
@@ -27,7 +27,8 @@
         <div class="span-19 last">
         {% if user.is_active and user.is_staff %}
         <div id="user-tools" class="span-19 last">
-            <p class="right">{% trans 'Welcome,' %}
+            <p class="right">
+            <img src="{% gravatar_url user.email 20 %}" alt="{{ user.username }}" />
             <strong>{% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}</strong>.
             {% block userlinks %}
             <a href="/accounts/logout/" id="logout_link">Log out</a>

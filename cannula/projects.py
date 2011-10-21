@@ -37,6 +37,6 @@ def make_project(name, group):
     args = {
         'git_cmd': conf.CANNULA_GIT_CMD,
         'template_dir': conf.CANNULA_GIT_TEMPLATES,
-        'repo': name
+        'repo': repo_dir
     }
     shell(git_init_cmd % args)

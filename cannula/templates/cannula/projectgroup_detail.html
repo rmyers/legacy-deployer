@@ -1,0 +1,9 @@
+{%  extends "cannula/base.html" %}
+
+{% block content %}
+<p><a href="{% url cannula-create-group %}">Create Group</a></p>
+{% for group in groups %}
+<p>{{group}}</p>
+{% endfor %}
+
+{% endblock %}

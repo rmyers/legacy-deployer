@@ -9,8 +9,9 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateResponseMixin, View, TemplateView
 from django.views.generic.edit import ModelFormMixin, CreateView
 
-from cannula.models import Profile, Project, Key
+from cannula.models import Profile, Project, Key, ProjectGroup
 from cannula.forms import ProjectForm
+from django.views.generic.detail import DetailView
 
 log = getLogger('cannula.views')
 
@@ -48,3 +49,13 @@ class CreateProject(CreateView):
         kwargs = super(CreateProject, self).get_form_kwargs()
         kwargs.update({'user': self.request.user})
         return kwargs
+
+class GroupView(DetailView):
+    
+    model = ProjectGroup
+    slug_field = 'name'
+
+class ProjectView(DetailView):
+    
+    model = Project
+    slug_field = 'name'
