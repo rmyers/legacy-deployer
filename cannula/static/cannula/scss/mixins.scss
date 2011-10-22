@@ -1,0 +1,73 @@
+// "Box" containers will be given padding, a white background and a drop
+// shadow. They are basic content modules.
+@mixin content-box {
+    background-color: #fff;
+    @include content-box-shadow;
+}
+
+
+@mixin vertical-linear-gradient($start, $end) {
+    background: $start; /* Old browsers */
+    background: -moz-linear-gradient(top, $start 0%, $end 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, $start), color-stop(100%, $end)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, $start 0%, $end 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, $start 0%, $start 100%); /* Opera11.10+ */
+    background: -ms-linear-gradient(top, $start 0%, $start 100%); /* IE10+ */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$start}', endColorstr='#{$end}', GradientType=0); /* IE6-9 */
+    background: linear-gradient(top, $start 0%, $start 100%); /* W3C */
+}
+
+@mixin box-shadow($x, $y, $blur, $color: rgba(0,0,0,.25)) {
+    -moz-box-shadow: $x $y $blur $color;
+    -webkit-box-shadow: $x $y $blur $color;
+    box-shadow: $x $y $blur $color;
+    //filter: progid:DXImageTransform.Microsoft.Shadow(color='#333', Direction=90, Strength=3);
+}
+@mixin inset-box-shadow($x, $y, $blur, $color: rgba(0,0,0,.25)) {
+    -moz-box-shadow: inset $x $y $blur $color;
+    -webkit-box-shadow: inset $x $y $blur $color;
+    box-shadow: inset $x $y $blur $color;
+}
+// A mixin for the box shadow 
+@mixin content-box-shadow {
+    @include box-shadow(1px, 1px, 5px);
+}
+
+@mixin border-radius($radius) {
+    -mox-border-radius: $radius;
+    -webkit-border-radius: $radius;
+    border-radius: $radius;
+}
+
+
+// A mixin for proportional images that should be displayed at a 4x3 aspect
+// ratio but will be coming back from the imaging server cropped into
+// squares.
+@mixin proportional-image-container($size) {
+    $img-width: $size;
+    $img-height: $size * .75;
+    $img-offset: ($img-width - $img-height) / 2;
+
+    width: $img-width;
+    height: $img-height;
+    overflow: hidden;
+
+    img {
+        margin: -#{$img-offset} auto 0;
+        min-width: $img-width;
+        min-height: $img-height;
+        display: block;
+    }
+}
+
+@mixin clearfix {
+    zoom: 1;
+    &:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+}
+

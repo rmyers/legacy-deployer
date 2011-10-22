@@ -1,0 +1,130 @@
+// Imports
+@import "mixins.scss";
+@import "bootstrap.scss";
+
+// Set up the grid. There is an extra gutter on either side of the actual
+// grid that we have to add ourselves, and account for in the calculations
+// below.
+$column-width: 58px;
+$gutter-width: 20px;
+$grid-columns: 12;
+$grid-width: $column-width * $grid-columns + $gutter-width * ($grid-columns - 1);
+$container-width: $grid-width + (2 * $gutter-width);
+
+// Colors
+$blue: #008DBF;
+$dark-blue: #032F40;
+
+@function grid-columns($n, $offset:0px) {
+    @return $column-width * $n + $gutter-width * ($n - 1) - $offset;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Mako", Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+}
+
+
+a {
+    color: #000;
+    text-decoration: none;
+    border-bottom: 1px dotted #ccc;
+    cursor: pointer;
+    img {
+        border: none;
+    }
+}
+a:hover {
+    border-color: #000;
+}
+
+h1, h2, h3, h4, h5 {
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+}
+
+h1, h2 {
+    margin: 0;
+    padding: 5px $gutter-width;
+    border-bottom: 1px dotted #ccc;
+}
+
+
+/****************************************************************************
+    Grid debugging
+****************************************************************************/
+#debug {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: url("http://griddle.it/#{$grid-width}-#{$grid-columns}-#{$gutter-width}") repeat-y center top;
+    opacity: .7;
+}
+
+/****************************************************************************
+    header
+****************************************************************************/
+#header {
+    height: 40px;
+    background: #262626;
+    border-bottom: 1px solid #000;
+    color: #fff;
+    a {
+      color: #fff;
+    }
+    a:hover {
+      color: $blue;
+    }
+    #nav {
+        list-style: none;
+        display: inline-block;
+        width: $container-width;
+        margin: 3px auto;
+        text-align: right;
+        font-size: 120%;
+        li {
+          display: inline;
+          margin-right: $gutter-width*2;
+          img {
+              @include border-radius(4px);
+              position: relative;
+              top: 5px;
+          }
+        }
+    }
+}
+#branding {
+    @include vertical-linear-gradient(darken($dark-blue, 5%), $dark-blue);
+    border-top: 1px solid $blue;
+    color: $blue;
+    height: 140px;
+    a { 
+        color: $blue;
+        border: none;
+    }
+    a:hover {
+      color: darken($blue, 10%);
+      border: none;
+    }
+    h1 {
+        width: $container-width;
+        margin: 2em 5em;
+        border: none;
+        span {
+            font-style: italic;
+            font-size: 70%;
+            margin-left: 3em;
+            padding-top: 2.5em;
+            padding-bottom: 2em;
+            padding-left: 3em;
+            border-left: 1px solid $dark-blue;
+        }
+    }
+}

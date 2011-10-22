@@ -1,20 +1,9 @@
 """
-Simple fabric script to simplify setup of new hosts and starting
-and stopping workers.
-
+Common utils
 
 """
-from __future__ import with_statement
 
-import os
-import sys
-import tarfile
-import posixpath
-import shutil
-import tempfile
+from fabric.api import local
 
-from fabric.api import *
-
-from cannula.conf import api, config
-
-# TODO code it!
+def watch_sass():
+    local('sass --no-cache --watch static/cannula/scss:static/cannula/css')
