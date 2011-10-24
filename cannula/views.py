@@ -42,6 +42,10 @@ class CreateProject(CreateView):
     form_class = ProjectForm
     template_name = 'cannula/form.html'
     
+    def get_context_data(self, **kwargs):
+        kwargs.update({'title': 'Create Project'})
+        return kwargs
+    
     def get_form_kwargs(self):
         """
         Returns the keyword arguments for instanciating the form.

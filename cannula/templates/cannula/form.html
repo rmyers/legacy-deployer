@@ -4,33 +4,26 @@
 {% block content %}
 <form action="{% firstof action_url "." %}" method="post" id="form1">
 {% csrf_token %}
-<fieldset class="ui-corner-all">
+<fieldset>
 <legend>{{ title }}</legend>
 {% if form.non_field_errors %}<div class="span-14 error">{{ form.non_field_errors }}</div>{% endif %}
 {% for field in form %}
-  <div class="span-14{% if field.errors %} error{% endif %}">
-  <label for="id_{{field.name}}" class="span-4">{{ field.label }}:</label>
-  <div class="span-10 last">
-     {{ field }}{% if field.errors %}{{ field.errors }}{% endif %}
-  </div>
-  </div>
-  <hr>
+<div class="clearfix{% if field.errors %} error{% endif %}">
+    <label for="id_{{ field.name}}">{{ field.label }}:</label>
+    <div class="input">
+        {{ field }}
+      	{% for error in field.errors %}<span class="help-inline">{{ error }}</span>{% endfor %}
+    	{% if field.help_text %}<span class="help-block">{{ field.help_text}}</span>{% endif %}
+    </div>
+</div>
 {% endfor %}
-<div class="span-4">&nbsp;</div>
-<div class="span-11 last">
-<input type='submit' class='boder' value='{% firstof title "submit" %}' />
-<a href="{% if cancel_url %}{{ cancel_url }}{% else %}../{% endif %}">Cancel</a>
+
+<div class="actions">
+	<input type='submit' class='btn primary' value='{% firstof title "submit" %}' />
+	<a href="{% if cancel_url %}{{ cancel_url }}{% else %}../{% endif %}">Cancel</a>
 </div>
 </fieldset>
 
 </form>
 
 {% endblock %}
-{% block sidebar %}
-<div class="box ui-corner-all">
-<h3>Form Help</h3>
-{% for field in form %}
-{% if field.help_text %}
-<p><strong>{{ field.label }}:</strong> {{ field.help_text|safe }}</p>
-{% endif %}{% endfor %} 
-</div>{% endblock %}
