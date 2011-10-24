@@ -17,20 +17,15 @@ log = getLogger('api')
 
 class CreateGroup(forms.Form):
     name = forms.CharField(label="Long name", max_length=100, required=False,
-        help_text="A free-form name for your project group, e.g."
-                  " <strong>\"Web Team\"</strong>.")
-    abbr = forms.CharField(label="Python package name", max_length=50,
-        help_text=("Python package name for your project group, e.g."
-                   " <strong>\"web\"</strong>."))
+        help_text="A name for your project group, e.g."
+                  " <strong>\"ateam\"</strong>.")
     description = forms.CharField(required=False, widget=forms.Textarea)
     admin = forms.CharField(label="Admin User", required=False,
         help_text="By default, the requesting user becomes the admin for the"
                   " group.  Enter an username here to override that.")
 
-    def clean_abbr(self):
-        """Ensure name is a valid Python package name."""
-        abbr = self.cleaned_data['abbr']
-        validate_python_package_name(abbr)
+    def clean_name(self):
+        abbr = self.cleaned_data['name']
         try:
             api.groups.get(abbr)
             raise forms.ValidationError(u'Group already exists.')
@@ -87,7 +82,7 @@ class GroupAPIBase(BaseAPI):
         raise NotImplementedError()
     
     
-    def create(self, abbr, name='', description='', request_user=None, **kwargs):
+    def create(self, name='', description='', request_user=None, **kwargs):
         req_user = api.users.get(request_user)
         try:
             self.get(abbr)

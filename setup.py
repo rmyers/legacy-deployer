@@ -9,7 +9,7 @@ setup(
     name = 'cannula',
     version = version,
     install_requires = [
-        'django >= 1.2.3',
+        'django >= 1.3.1',
         #'fabric >= 1.0.0',
         'virtualenv >= 1.4.5',
         'celery',

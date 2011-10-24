@@ -22,25 +22,17 @@ CANNULA_WORKER = 'gunicorn'
 # API classes you can override a single one in django settings
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
-    'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
-    'deployments': 'cannula.api.djangodb.deployments.DeploymentAPI',
+    #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
+    #'deployments': 'cannula.api.djangodb.deployments.DeploymentAPI',
     'groups': 'cannula.api.djangodb.groups.GroupAPI',
     'log': 'cannula.api.djangodb.log.LoggingAPI',
-    'packages': 'cannula.api.djangodb.packages.PackageAPI',
-    'permissions': 'cannula.api.djangodb.permissions.PermissionAPI',
+    #'packages': 'cannula.api.djangodb.packages.PackageAPI',
+    #'permissions': 'cannula.api.djangodb.permissions.PermissionAPI',
     'projects': 'cannula.api.djangodb.projects.ProjectAPI',
-    'servers': 'cannula.api.djangodb.servers.ServerAPI',
-    'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
-    'users': 'cannula.api.djangodb.users.UserAPI',
+    #'servers': 'cannula.api.djangodb.servers.ServerAPI',
+    #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
+    'users': 'cannula.api.v2.users.UserAPI',
 }
-#
-# Dictionary of values to pass to the context when
-# deploying applications. 
-# CANNUL_CLUSTER_DEFAULTS = {
-#     'cluster_abbr': {'special_value': 'for this cluster'},
-#     '__all__':  {'values': 'for all clusters'}
-# }
-CANNULA_CLUSTER_DEFAULTS = {}
 #
 # Lock timeout in seconds
 CANNULA_LOCK_TIMEOUT = 30
@@ -53,7 +45,6 @@ if os.environ.get('DJANGO_SETTINGS_MODULE'):
     CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', CANNULA_PROXY)
     CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', CANNULA_GIT_CMD)
     CANNULA_GIT_TEMPLATES = getattr(settings, 'CANNULA_GIT_TEMPLATES', CANNULA_GIT_TEMPLATES)
-    CANNULA_CLUSTER_DEFAULTS = getattr(settings, 'CANNULA_CLUSTER_DEFAULTS', CANNULA_CLUSTER_DEFAULTS)
     CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', CANNULA_LOCK_TIMEOUT)
     # Update the api with user specified Classes.
     _api = getattr(settings, 'CANNULA_API', {})
@@ -73,22 +64,19 @@ class LazyAPI(object):
     
 class API:
     
-    clusters = LazyAPI(CANNULA_API['clusters'])
-    deployments = LazyAPI(CANNULA_API['deployments'])
+    #clusters = LazyAPI(CANNULA_API['clusters'])
+    #deployments = LazyAPI(CANNULA_API['deployments'])
     groups = LazyAPI(CANNULA_API['groups'])
     log = LazyAPI(CANNULA_API['log'])
-    packages = LazyAPI(CANNULA_API['packages'])
-    permissions = LazyAPI(CANNULA_API['permissions'])
+    #packages = LazyAPI(CANNULA_API['packages'])
+    #permissions = LazyAPI(CANNULA_API['permissions'])
     projects = LazyAPI(CANNULA_API['projects'])
-    servers = LazyAPI(CANNULA_API['servers'])
+    #servers = LazyAPI(CANNULA_API['servers'])
     users = LazyAPI(CANNULA_API['users'])
-    unix_ids = LazyAPI(CANNULA_API['unix_ids'])
+    #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
 
     def __init__(self):
-        self._defaults = ['unix_ids', 'packages', 'log', 
-                          'servers', 'groups', 'clusters', 
-                          'permissions', 'deployments', 'projects', 
-                          'users']
+        self._defaults = ['log', 'groups',  'projects', 'users']
         # Allow for user defined API for any option not found
         # in the defaults add it now.
         for option, value in CANNULA_API.iteritems():

@@ -42,6 +42,18 @@ class ProjectGroup(models.Model):
     def get_absolute_url(self):
         return '/%s/' % self.name
     
+    class Meta:
+        app_label = "cannula"
+        ordering = ('name',)
+    
+    @property
+    def members_list(self):
+        return self.members.all()
+    
+    @property
+    def projects(self):
+        return self.project_set.all()
+    
 class GroupMembership(models.Model):
     """
     Many to Many relationship for the Project Group membership. This holds a
@@ -84,6 +96,11 @@ class Project(models.Model):
         make_project(self.name, self.group.name)
         return super(Project, self).save(*args, **kwargs)
     
+    @property
+    def unix_id(self):
+        """Used for system username."""
+        return u'%s.%s' % (self.group.name, self.name)
+    
 class Key(models.Model):
     
     name = models.CharField(max_length=255)
@@ -101,3 +118,23 @@ class Profile(models.Model):
     
     def __unicode__(self):
         return self.user
+
+class Log(models.Model):
+    """
+    Logs for group/project actions.
+    """
+    user = models.ForeignKey(User, blank=True, null=True)
+    group = models.ForeignKey(ProjectGroup, blank=True, null=True)
+    project = models.ForeignKey(Project, blank=True, null=True)
+    message = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(default=datetime.now)
+    
+    def __unicode__(self):
+        user_str = self.user and u" by %s" % self.user or u""
+        date_str = self.timestamp.strftime('on %B %d, %Y at %l:%M %p')
+        return u"%s %s%s" % (self.message, date_str, user_str)
+    
+    class Meta:
+        app_label = "cannula"
+        ordering = ('-timestamp',)
+        get_latest_by = ('timestamp')

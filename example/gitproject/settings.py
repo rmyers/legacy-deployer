@@ -1,7 +1,8 @@
 # Django settings for blah project.
 import djcelery
 djcelery.setup_loader()
-
+import os
+CURRENT_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 CELERY_RESULT_BACKEND = "database"
 BROKER_HOST = "localhost"
 BROKER_PORT = 5672
@@ -22,7 +23,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'cannula.db',                      # Or path to database file if using sqlite3.
+        'NAME': os.path.join(CURRENT_DIR, 'cannula.db'),                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
