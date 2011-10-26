@@ -1,15 +1,15 @@
 # Django settings for blah project.
-import djcelery
-djcelery.setup_loader()
+#import djcelery
+#djcelery.setup_loader()
 import os
 CURRENT_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-CELERY_RESULT_BACKEND = "database"
-BROKER_HOST = "localhost"
-BROKER_PORT = 5672
-BROKER_USER = "guest"
-BROKER_PASSWORD = "guest"
-BROKER_VHOST = "/"
-BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+#CELERY_RESULT_BACKEND = "database"
+#BROKER_HOST = "localhost"
+#BROKER_PORT = 5672
+#BROKER_USER = "guest"
+#BROKER_PASSWORD = "guest"
+#BROKER_VHOST = "/"
+#BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -108,9 +108,11 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     #'cannula.api.djangodb',
     'cannula',
-    'djcelery',
+    #'djcelery',
     # django ORM AMQP broker
-    'djkombu',
+    #'djkombu',
 )
 
 AUTH_PROFILE_MODULE = 'cannula.Profile'
+
+AUTHENTICATION_BACKENDS = ['cannula.auth.CannulaBackend']

@@ -19,3 +19,15 @@ class ProjectForm(forms.ModelForm):
         groups = self.user.groupmembership_set.filter(can_add=True)
         group_choices = [(g.group.id, g.group.name) for g in groups]
         self.fields['group'].choices = group_choices
+
+class ProjectGroupForm(forms.ModelForm):
+    class Meta:
+        model = ProjectGroup
+        exclude = ['date_created', 'members']
+
+    def __init__(self, *args, **kwargs):
+        """
+        Dynamically populate group choices.
+        """
+        self.user = kwargs.pop('user')
+        super(ProjectGroupForm, self).__init__(*args, **kwargs)

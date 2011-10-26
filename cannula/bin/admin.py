@@ -1,6 +1,6 @@
 #!/home/rmyers/envs/cannula/bin/python
-"""/
-usage: %prog [options] username
+"""\
+%prog [options] username
 
 Test if a user has the correct authorization to do an action.
 
@@ -12,15 +12,19 @@ The actual command is stored in the ENV variable
 $SSH_ORIGINAL_COMMAND, usually "git-receive-pack 'myrepo.git'"
 But it could be some following special commands:
 
-* info
-* rollback [project]
-* django.shell [project]
-* django.syncdb [project]
+* info                                - List out all your projects and groups.
+* logs [project]                      - Print out the last few deployment logs.
+* rollback [project] [hash]           - Rollback last deployment, or force 
+                                        'hash' to be deployed.
+* create_group [groupname]            - Create new group.
+* create_project [group] [project]    - Create new project in group.
+* django.syncdb [project]             - Run django syncdb command on project.
 
 Which can be run simply thru ssh like so::
 
     $ ssh cannula@example.com rollback myproject [commithash]
-    $ ssh cannula@example.com django.shell myproject
+    $ ssh cannula@example.com create_group newgroup
+    $ ssh cannula@example.com create_project newgroup newproject
 
 """
 import sys
@@ -35,6 +39,13 @@ def info(user):
     print sys.path
     print User.objects.all()
     print api.users.info(user)
+
+def djangoshell(settings):
+    # hack sys args
+    from django.core.management import execute_from_command_line
+    cmd = '/home/rmyers/envs/cannula/bin/django-admin.py'
+    args = [cmd, 'shell', '--settings=%s' % settings]
+    os.execve(cmd, args, os.environ)
 
 def main():
     parser = OptionParser(__doc__)
@@ -55,6 +66,12 @@ def main():
     if command == 'info':
         # Display server and user info
         return info(user)
+    
+    elif command == 'shell':
+        return djangoshell(options.settings)
+    
+    else:
+        parser.error("command not found!")
 
 if __name__ == "__main__":
     main()

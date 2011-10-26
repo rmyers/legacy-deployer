@@ -1,10 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth.models import Permission
 
 from cannula.models import *
 
 admin.site.register(Profile)
 admin.site.register(Key)
 admin.site.register(Project)
+admin.site.register(Permission)
 
 class GroupMembershipInline(admin.TabularInline):
     model = GroupMembership
