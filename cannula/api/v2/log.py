@@ -13,7 +13,7 @@ Log = get_model('cannula', 'log')
 
 log = getLogger('api')
 
-class LoggingAPIBase(BaseAPI):
+class LoggingAPI(BaseAPI):
 
     def _get(self, group, project):
         logs = Log.objects.filter(group=group, project=project)
