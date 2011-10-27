@@ -116,3 +116,13 @@ class ProjectAPI(BaseAPI):
             'repo': project.repo_dir
         }
         shell(self.git_init_cmd % args)
+        #TODO: make post-receive hook executable
+        #TODO: Edit config file and like this:
+        #[core]
+        #        repositoryformatversion = 0
+        #        filemode = true
+        #        bare = false
+        #        ignorecase = true
+        #        worktree = ../{{ project.name }}
+        #[receive]
+        #        denycurrentbranch = ignore
