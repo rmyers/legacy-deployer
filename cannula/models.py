@@ -4,6 +4,8 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import os
+from cannula import conf
 
 PROJECT_RE = re.compile('^[a-zA-Z][-_a-zA-Z0-9]*$')
 
@@ -95,6 +97,16 @@ class Project(models.Model):
         from cannula.projects import make_project
         make_project(self.name, self.group.name)
         return super(Project, self).save(*args, **kwargs)
+    
+    @property
+    def repo_dir(self):
+        directory = '%s/%s.git' % (self.group.name, self.name)
+        return os.path.join(conf.CANNULA_BASE, directory)
+    
+    @property
+    def project_dir(self):
+        directory = '%s/%s' % (self.group.name, self.name)
+        return os.path.join(conf.CANNULA_BASE, directory)
     
     @property
     def unix_id(self):
