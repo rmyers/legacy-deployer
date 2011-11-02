@@ -8,7 +8,7 @@ from cannula.api import DuplicateObject
 from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
 from cannula.api import BaseAPI
-from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_GIT_TEMPLATES
+from cannula.conf import api, CANNULA_GIT_CMD
 from cannula.utils import write_file
 
 Project = get_model('cannula', 'project')
@@ -82,12 +82,13 @@ class ProjectAPI(BaseAPI):
 
         # Create the Project object.
         project = self._create(group=group,name=name,description=description)
-
         log.info("Project %s created in %s" % (project, group))
+        api.log.create("Project %s created" % project, user=user, group=group)
+        self.initialize(project, user)
         return project
     
     
-    def initialize(self, name):
+    def initialize(self, name, user):
         """
         Utility to create a project on the filesystem.
         
@@ -98,15 +99,20 @@ class ProjectAPI(BaseAPI):
         """
         from cannula.utils import shell
         project = self.get(name)
+        user = api.users.get(user)
+        
+        if not user.has_perm('add', project.group):
+            raise PermissionError("You can not create projects in this group")
+        
         # TODO: Create unix user for project
         
+        log.info("Creating project directories for: %s", project)
         if not os.path.isdir(project.repo_dir):
             os.makedirs(project.repo_dir)
         
         if not os.path.isdir(project.project_dir):
             os.makedirs(project.project_dir)
         
-        # TODO: find a way to locate the git templates in Django
         # Create the git repo
         args = {
             'git_cmd': CANNULA_GIT_CMD,
@@ -116,10 +122,11 @@ class ProjectAPI(BaseAPI):
         
         ctx = {'project': project}
         # Update git config in new repo
-        write_file(project.git_config, 'cannula/git/config.txt', ctx)
+        write_file(project.git_config, 'git/config.txt', ctx)
         # Write out post-recieve hook
-        write_file(project.post_recieve, 'cannula/git/post-recieve.sh', ctx)
+        write_file(project.post_receive, 'git/post-recieve.sh', ctx)
         # Write out a description file
-        write_file(project.git_desciption, 'cannula/git/description.txt', ctx)
+        write_file(project.git_desciption, 'git/description.txt', ctx)
         
-        
+        log.info("Project %s initialized", project)
+        api.log.create("Project %s initialized" % project, user=user, group=project.group)

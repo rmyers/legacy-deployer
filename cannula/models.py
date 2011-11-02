@@ -113,6 +113,18 @@ class Project(models.Model):
         """Used for system username."""
         return u'%s.%s' % (self.group.name, self.name)
     
+    @property
+    def git_config(self):
+        return os.path.join(self.repo_dir, 'config')
+    
+    @property
+    def git_description(self):
+        return os.path.join(self.repo_dir, 'description')
+    
+    @property
+    def post_receive(self):
+        return os.path.join(self.repo_dir, 'hooks', 'post-receive')
+    
 class Key(models.Model):
     
     name = models.CharField(max_length=255)

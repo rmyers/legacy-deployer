@@ -16,7 +16,6 @@ CANNULA_BASE = '/cannula/'
 CANNULA_PROXY = 'cannula.proxy.nginx'
 # Path to 'git' command
 CANNULA_GIT_CMD = 'git'
-CANNULA_GIT_TEMPLATES = os.path.join(CURRENT_DIR, 'templates', 'git')
 # Worker types enabled
 CANNULA_WORKER = 'gunicorn'
 # API classes you can override a single one in django settings
@@ -27,7 +26,7 @@ CANNULA_API = {
     'groups': 'cannula.api.v2.groups.GroupAPI',
     'log': 'cannula.api.v2.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
-    #'permissions': 'cannula.api.djangodb.permissions.PermissionAPI',
+    'permissions': 'cannula.api.v2.permissions.PermissionAPI',
     'projects': 'cannula.api.v2.projects.ProjectAPI',
     #'servers': 'cannula.api.djangodb.servers.ServerAPI',
     #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
@@ -44,7 +43,6 @@ if os.environ.get('DJANGO_SETTINGS_MODULE'):
     CANNULA_BASE = getattr(settings, 'CANNULA_BASE', CANNULA_BASE)
     CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', CANNULA_PROXY)
     CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', CANNULA_GIT_CMD)
-    CANNULA_GIT_TEMPLATES = getattr(settings, 'CANNULA_GIT_TEMPLATES', CANNULA_GIT_TEMPLATES)
     CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', CANNULA_LOCK_TIMEOUT)
     # Update the api with user specified Classes.
     _api = getattr(settings, 'CANNULA_API', {})
@@ -69,14 +67,14 @@ class API:
     groups = LazyAPI(CANNULA_API['groups'])
     log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
-    #permissions = LazyAPI(CANNULA_API['permissions'])
+    permissions = LazyAPI(CANNULA_API['permissions'])
     projects = LazyAPI(CANNULA_API['projects'])
     #servers = LazyAPI(CANNULA_API['servers'])
     users = LazyAPI(CANNULA_API['users'])
     #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
 
     def __init__(self):
-        self._defaults = ['log', 'groups',  'projects', 'users']
+        self._defaults = ['log', 'groups',  'projects', 'users', 'permissions']
         # Allow for user defined API for any option not found
         # in the defaults add it now.
         for option, value in CANNULA_API.iteritems():
