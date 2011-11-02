@@ -1,0 +1,11 @@
+# Git Config added by cannula DO NOT EDIT!
+# or bad things will happend to your mother!
+#
+[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        ignorecase = true
+        worktree = ../{{ project.name }}
+[receive]
+        denycurrentbranch = ignore
