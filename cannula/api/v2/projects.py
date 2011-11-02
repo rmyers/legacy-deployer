@@ -9,6 +9,7 @@ from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
 from cannula.api import BaseAPI
 from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_GIT_TEMPLATES
+from cannula.utils import write_file
 
 Project = get_model('cannula', 'project')
 
@@ -19,10 +20,7 @@ class ProjectAPI(BaseAPI):
     useradd_cmd = '/usr/sbin/useradd %(options)s %(name)s'
     userdel_cmd = '/usr/sbin/userdel -r %(name)s'
     userget_cmd = '/bin/grep ^%(name)s: /etc/passwd'
-    
-    # TODO: Add a template directory for hooks
-    # git_init_cmd = '%(git_cmd)s init --bare --template %(template_dir)s %(repo)s'
-    git_init_cmd = '%(git_cmd)s init --bare --template %(template_dir)s %(repo)s'
+    git_init_cmd = '%(git_cmd)s init --bare %(repo)s'
 
     
     def _get(self, projectname):
@@ -112,17 +110,16 @@ class ProjectAPI(BaseAPI):
         # Create the git repo
         args = {
             'git_cmd': CANNULA_GIT_CMD,
-            'template_dir': CANNULA_GIT_TEMPLATES,
             'repo': project.repo_dir
         }
         shell(self.git_init_cmd % args)
-        #TODO: make post-receive hook executable
-        #TODO: Edit config file and like this:
-        #[core]
-        #        repositoryformatversion = 0
-        #        filemode = true
-        #        bare = false
-        #        ignorecase = true
-        #        worktree = ../{{ project.name }}
-        #[receive]
-        #        denycurrentbranch = ignore
+        
+        ctx = {'project': project}
+        # Update git config in new repo
+        write_file(project.git_config, 'cannula/git/config.txt', ctx)
+        # Write out post-recieve hook
+        write_file(project.post_recieve, 'cannula/git/post-recieve.sh', ctx)
+        # Write out a description file
+        write_file(project.git_desciption, 'cannula/git/description.txt', ctx)
+        
+        
