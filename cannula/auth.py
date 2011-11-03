@@ -1,9 +1,7 @@
 
 from django.contrib.auth.backends import ModelBackend
-from django.db.models.loading import get_model
 
-ProjectGroup = get_model('cannula', 'projectgroup')
-Project = get_model('cannula', 'project')
+from cannula.conf import api
 
 class CannulaBackend(ModelBackend):
     
@@ -15,22 +13,4 @@ class CannulaBackend(ModelBackend):
         if obj is None:
             return super(CannulaBackend, self).has_perm(user_obj, perm)
         
-        # Else check for project/group permissions
-        if isinstance(obj, Project):
-            group = obj.group
-        elif isinstance(obj, ProjectGroup):
-            group = object
-        else:
-            # We do not handle anything else
-            return False
-        
-        if perm == 'add':
-            qs = user_obj.groupmembership_set.filter(group=group, can_add=True)
-        elif perm == 'modify':
-            qs = user_obj.groupmembership_set.filter(group=group, can_modify=True)
-        elif perm == 'delete':
-            qs = user_obj.groupmembership_set.filter(group=group, can_delete=True)
-        else:
-            return False
-        
-        return bool(qs.count())
+        return api.permissions.has_perm(user_obj, perm, obj=obj)

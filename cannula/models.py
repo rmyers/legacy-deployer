@@ -64,9 +64,9 @@ class GroupMembership(models.Model):
     """
     user = models.ForeignKey(User)
     group = models.ForeignKey(ProjectGroup)
-    can_add = models.BooleanField(default=False, blank=True)
-    can_delete = models.BooleanField(default=False, blank=True)
-    can_modify = models.BooleanField(default=False, blank=True)
+    add = models.BooleanField(default=False, blank=True)
+    delete = models.BooleanField(default=False, blank=True)
+    modify = models.BooleanField(default=False, blank=True)
     date_joined = models.DateField(default=datetime.now)
     
     def __unicode__(self):

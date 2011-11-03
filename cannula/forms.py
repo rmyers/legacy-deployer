@@ -16,7 +16,7 @@ class ProjectForm(forms.ModelForm):
         self.user = kwargs.pop('user')
         super(ProjectForm, self).__init__(*args, **kwargs)
 
-        groups = self.user.groupmembership_set.filter(can_add=True)
+        groups = self.user.groupmembership_set.filter(add=True)
         group_choices = [(g.group.id, g.group.name) for g in groups]
         self.fields['group'].choices = group_choices
 

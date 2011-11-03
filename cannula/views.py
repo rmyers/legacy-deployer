@@ -32,7 +32,7 @@ class Index(TemplateView):
         return RequestContext(self.request, {
             'title': "My Groups and Projects",
             'groups': groups,
-            'groups_create': user.groupmembership_set.filter(can_add=True), 
+            'groups_create': user.groupmembership_set.filter(add=True), 
             # Flag to disable breadcrumbs
             'home_page': True,
             'now': datetime.datetime.now(),
