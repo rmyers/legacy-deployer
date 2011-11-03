@@ -66,8 +66,8 @@ class PermissionAPI(BaseAPI):
         self._grant(user, ['add', 'modify', 'delete'], group)
 
     def _grant(self, user, perms, group):
-        perm_model, _ = self.model.get_or_create(user=user, group=group)
-        [perm_model.setattr(p, True) for p in perms]
+        perm_model, _ = self.model.objects.get_or_create(user=user, group=group)
+        [setattr(perm_model, p, True) for p in perms]
         perm_model.save()
     
     def grant(self, user, perms, group, req_user):

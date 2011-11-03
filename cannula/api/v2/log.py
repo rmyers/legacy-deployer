@@ -32,7 +32,7 @@ class LoggingAPI(BaseAPI):
         return logs
     
     
-    def _create(self, message, user, group, project, cluster):
+    def _create(self, message, user, group, project):
         Log.objects.create(user=user, group=group, 
             project=project, message=message)
     
@@ -93,8 +93,6 @@ class LoggingAPI(BaseAPI):
             user = api.users.get(user)
         if group:
             group = api.groups.get(group)
-        if project and not group:
-            raise ApiError("Must specify the group in order to log to a project")
-        elif project:
-            project = api.projects.get(group, project)
+        if project:
+            project = api.projects.get(project)
         return self._create(message, user, group, project)

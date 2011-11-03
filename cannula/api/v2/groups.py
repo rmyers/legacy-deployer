@@ -21,7 +21,7 @@ class GroupAPI(BaseAPI):
     def _create(self, name, user, description, **kwargs):
         if not user.has_perm('add_projectgroup'):
             raise PermissionError("You are not allowed to add Groups!")
-        group, created = self.model.get_or_create(name=name, 
+        group, created = self.model.objects.get_or_create(name=name, 
             defaults={'description':description})
         if not created:
             raise DuplicateObject('Group already exists!')
@@ -53,7 +53,7 @@ class GroupAPI(BaseAPI):
     def create(self, name, user, description='', **kwargs):
         user = api.users.get(user)
         # create group
-        group = self._create(name, description, **kwargs)
+        group = self._create(name, user, description, **kwargs)
         api.permissions.grant_admin(user, group)
         msg = 'Creating new group: %s' % name
         log.info(msg)
