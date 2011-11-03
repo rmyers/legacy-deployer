@@ -11,6 +11,8 @@ CURRENT_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 #BROKER_VHOST = "/"
 #BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
 
+CANNULA_BASE = '/tmp/cannula'
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 

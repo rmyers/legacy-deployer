@@ -41,7 +41,7 @@ class ProjectAPI(BaseAPI):
         return Project.objects.all()
     
     
-    def _create(self, group, abbr, name, description):
+    def _create(self, group, name, description):
         project, created = Project.objects.get_or_create(group=group, name=name, 
             defaults={'description':description})
         if not created:
@@ -122,11 +122,11 @@ class ProjectAPI(BaseAPI):
         
         ctx = {'project': project}
         # Update git config in new repo
-        write_file(project.git_config, 'git/config.txt', ctx)
+        write_file(project.git_config, 'git/git-config.txt', ctx)
         # Write out post-recieve hook
-        write_file(project.post_receive, 'git/post-recieve.sh', ctx)
+        write_file(project.post_receive, 'git/post-receive.sh', ctx)
         # Write out a description file
-        write_file(project.git_desciption, 'git/description.txt', ctx)
+        write_file(project.git_description, 'git/description.txt', ctx)
         
         log.info("Project %s initialized", project)
         api.log.create("Project %s initialized" % project, user=user, group=project.group)

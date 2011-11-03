@@ -79,8 +79,7 @@ class Project(models.Model):
         "unique identifier. Must contain only lowercase letters, numbers,"
         " underscores or hyphens",
         validators=[valid_name])
-    title = models.CharField(max_length=255, unique=True, db_index=True,
-        help_text="Verbose name for this Project")
+    description = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(ProjectGroup,
         help_text="Group that has access.")
@@ -90,13 +89,6 @@ class Project(models.Model):
     
     def get_absolute_url(self):
         return '/%s/%s/' % (self.group.name, self.name)
-    
-    def save(self, *args, **kwargs):
-        # Create the actual project repo/home dir
-        # If this fails bail early and don't create the database entry.
-        from cannula.projects import make_project
-        make_project(self.name, self.group.name)
-        return super(Project, self).save(*args, **kwargs)
     
     @property
     def repo_dir(self):
