@@ -1,36 +1,28 @@
 {% extends "cannula/base.html" %}
-
+{% load gravatar %}
 {% block extrahead %}
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
 {% endblock %}
 
 {% block content %}
 
-  <h2>{{ project }}</h2>
   {% if project.description %}<div class="description">{{ project.description }}</div>{% endif %}
 
-<h2>Deployment History ({{ logs.paginator.count }} results found)</h2>
+<h3>Recent History</h3>
 {% if logs.paginator.count %}
-<table>
-<thead>
-<tr>
-    <th>Time</th>
-    <th>User</th>
-    <th>Stage(s)</th>
-    <th>Action</th>
-</tr>
-</thead>
-<tbody>
-{% for log in logs.object_list %}
-<tr>
-    <td>{{ log.timestamp|date }} {{ log.timestamp|time }}</td>
-    <td>{{ log.user.get_full_name }} ({{ log.user.username}})</td>
-    <td>{{ log.cluster }}</td>
-    <td>{{ log.message }}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+{% for msg in logs.object_list %}
+      <div class="news">
+           <img src="{% gravatar_url user.email 30 %}" alt="{{ user.username }}" />
+           <div class="message">
+                <span>
+                   {% if msg.project %}
+                   <a href="{% url project-details msg.project.group,msg.project %}">{{ msg.message }}</a>
+                   {% else %}{{ msg.message}}{% endif %}
+                </span>
+                <p class="quiet">{{ msg.timestamp|timesince:now }} ago by {{msg.user }}</p>  
+           </div>
+      </div>   
+    {% endfor %}
 <div class="pagination">
     <span class="step-links">
         {% if logs.has_previous %}

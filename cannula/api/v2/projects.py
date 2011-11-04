@@ -83,7 +83,7 @@ class ProjectAPI(BaseAPI):
         # Create the Project object.
         project = self._create(group=group,name=name,description=description)
         log.info("Project %s created in %s" % (project, group))
-        api.log.create("Project %s created" % project, user=user, group=group)
+        api.log.create("Project %s created" % project, user=user, group=group, project=project)
         self.initialize(project, user)
         return project
     
@@ -129,4 +129,4 @@ class ProjectAPI(BaseAPI):
         write_file(project.git_description, 'git/description.txt', ctx)
         
         log.info("Project %s initialized", project)
-        api.log.create("Project %s initialized" % project, user=user, group=project.group)
+        api.log.create("Project %s initialized" % project, user=user, group=project.group, project=project)

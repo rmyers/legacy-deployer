@@ -15,8 +15,11 @@ log = getLogger('api')
 
 class LoggingAPI(BaseAPI):
 
-    def _get(self, group, project):
-        logs = Log.objects.filter(group=group, project=project)
+    def _get(self, group=None, project=None):
+        if group:
+            logs = Log.objects.filter(group=group)
+        elif project:
+            logs = Log.objects.filter(project=project)
         logs.order_by('timestamp')
         try:
             return logs.latest()
@@ -26,8 +29,11 @@ class LoggingAPI(BaseAPI):
     def _news(self, groups):
         return Log.objects.filter(group__in=groups)
         
-    def _list(self, group, project, page=1, count=20):
-        logs = Log.objects.filter(group=group, project=project)
+    def _list(self, group=None, project=None, page=1, count=20):
+        if group:
+            logs = Log.objects.filter(group=group)
+        elif project:
+            logs = Log.objects.filter(project=project)
         logs.order_by('timestamp')
         return logs
     
@@ -37,20 +43,24 @@ class LoggingAPI(BaseAPI):
             project=project, message=message)
     
     
-    def get(self, group, project):
-        """Get the latest log record for this project."""
-        group = api.groups.get(group)
-        project = api.projects.get(project)
+    def get(self, group=None, project=None):
+        """Get the latest log record for this project or group."""
+        if group:
+            group = api.groups.get(group)
+        if project:
+            project = api.projects.get(project)
         try:
             return self._get(group, project)
         except:
             raise UnitDoesNotExist('Log does not exist')
     
     
-    def list(self, group, project, page=1, count=20):
+    def list(self, group=None, project=None, page=1, count=20):
         """List all the logs for this project paginate the results."""
-        group = api.groups.get(group)
-        project = api.projects.get(group, project)
+        if group:
+            group = api.groups.get(group)
+        if project:
+            project = api.projects.get(project)
         try:
             logs = self._list(group, project, page, count)
         except:

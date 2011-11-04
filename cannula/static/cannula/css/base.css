@@ -2135,6 +2135,12 @@ body {
   background: #fff;
   color: #333; }
 
+a {
+  color: #055371; }
+
+a:hover {
+  color: #032f40; }
+
 /****************************************************************************
     Grid debugging
 ****************************************************************************/
@@ -2203,3 +2209,26 @@ body {
 ****************************************************************************/
 .clearfix .help-block {
   color: #410; }
+
+/****************************************************************************
+    News
+****************************************************************************/
+.news {
+  clear: both;
+  margin-bottom: 10px;
+  overflow: auto; }
+  .news img {
+    border: 1px solid #ccc;
+    padding: 2px;
+    float: left; }
+  .news .message {
+    float: left;
+    margin-left: 5px; }
+    .news .message span {
+      font-weight: bold;
+      font-size: 110%;
+      color: #333; }
+    .news .message .quiet {
+      color: #666;
+      font-size: 80%;
+      padding: 0; }

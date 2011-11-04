@@ -28,15 +28,16 @@ class Index(TemplateView):
     
     def get_context_data(self, **kwargs):
         user = self.request.user
-        groups = user.groupmembership_set.all()
+        groups = api.groups.list(user=user)
+        groups_create = api.groups.list(user=user, perm='add')
         return RequestContext(self.request, {
             'title': "My Groups and Projects",
             'groups': groups,
-            'groups_create': user.groupmembership_set.filter(add=True), 
+            'groups_create': groups_create, 
             # Flag to disable breadcrumbs
             'home_page': True,
             'now': datetime.datetime.now(),
-            'news': [],#TODO: make news
+            'news': api.log.news(groups=groups),
         })
 
 class CreateProject(CreateView):
@@ -96,3 +97,11 @@ class ProjectView(DetailView):
     
     model = Project
     slug_field = 'name'
+    
+    def get_context_data(self, object, **kwargs):
+        kwargs.update({
+            'title': unicode(object),
+            'project': object,
+            'now': datetime.datetime.now(),
+            'logs': api.log.list(project=object)})
+        return kwargs

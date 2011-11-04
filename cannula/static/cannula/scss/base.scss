@@ -29,6 +29,12 @@ body {
     color: #333;
 }
 
+a {
+  color: lighten($dark-blue, 10%);
+}
+a:hover {
+  color: $dark-blue;
+}
 /****************************************************************************
     Grid debugging
 ****************************************************************************/
@@ -93,5 +99,32 @@ body {
 .clearfix {
     .help-block {
         color: #410;
+    }
+}
+/****************************************************************************
+    News
+****************************************************************************/
+.news {
+    clear: both;
+    margin-bottom: 10px;
+    overflow: auto;
+    img {
+        border: 1px solid #ccc;
+        padding: 2px;
+        float: left;
+    }
+    .message {
+        float: left;
+        margin-left: 5px;
+        span {
+          font-weight: bold;
+          font-size: 110%;
+          color: #333;
+        }
+        .quiet {
+            color: #666;
+            font-size: 80%;
+            padding: 0;
+        }
     }
 }
