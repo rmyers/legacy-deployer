@@ -1,4 +1,4 @@
-#!/home/rmyers/envs/cannula/bin/python
+#!/usr/bin/env python
 """\
 %prog [options] username
 
@@ -34,26 +34,33 @@ from optparse import OptionParser
 
 def info(user):
     from cannula.conf import api
-    from django.contrib.auth.models import User
-    print os.environ
-    print sys.path
-    print User.objects.all()
     print api.users.info(user)
 
-def djangoshell(settings):
-    # hack sys args
-    from django.core.management import execute_from_command_line
-    cmd = '/home/rmyers/envs/cannula/bin/django-admin.py'
-    args = [cmd, 'shell', '--settings=%s' % settings]
-    os.execve(cmd, args, os.environ)
+def create_group(user, name, description):
+    from cannula.conf import api
+    return api.groups.create(name, user, description)
+
+def has_perm(user, perm, group=None, project=None, **kwargs):
+    """
+    Check that a user has a certain permission. 
+    Exit non-zero if not so bash scripts may use this.
+    """
+    from cannula.conf import api
+    if api.permissions.has_perm(user, perm, group, project):
+        return True
+    sys.exit("Access Denied!")
 
 def main():
     parser = OptionParser(__doc__)
     parser.add_option("--settings", dest="settings",
                       help="Django settings file to use")
+    parser.add_option("--project", dest="project",
+                      help="project to update")
+    parser.add_option("--group", dest="group",
+                      help="group to update")
     
     (options, args) = parser.parse_args()
-    if len(args) != 1:
+    if len(args) < 2:
         parser.error("incorrect number of arguments")
     if not options.settings:
         sys.exit("Cannula users authorized_key file is missing settings file!")
@@ -61,14 +68,33 @@ def main():
     os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
         
     user = args[0]
-    command = os.environ.get('SSH_ORIGINAL_COMMAND', 'info')
+    command = args[1]
     
     if command == 'info':
         # Display server and user info
         return info(user)
     
-    elif command == 'shell':
-        return djangoshell(options.settings)
+    elif command == 'log':
+        # user log message --project=project --group=group
+        if len(args) > 3:
+            parser.error("Must specify log message!")
+    
+    elif command == 'create_group':
+        # user create_group groupname description
+        if len(args) > 3:
+            parser.error("Must specify group name!")
+        groupname = args[2]
+        description = ""
+        if len(args) > 4:
+            description = args[3]
+        return create_group(user, groupname, description)
+    
+    elif command == 'has_perm':
+        # user has_perm perm --project=project --group=group
+        if len(args) > 3:
+            parser.error("Must specify permission!")
+        perm = args[2]
+        return has_perm(user, perm, **options)
     
     else:
         parser.error("command not found!")

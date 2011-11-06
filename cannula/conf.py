@@ -16,6 +16,8 @@ CANNULA_BASE = '/cannula/'
 CANNULA_PROXY = 'cannula.proxy.nginx'
 # Path to 'git' command
 CANNULA_GIT_CMD = 'git'
+# Cannula admin command
+CANNULA_CMD = os.path.join(CURRENT_DIR, 'bin', 'admin.py')
 # Worker types enabled
 CANNULA_WORKER = 'gunicorn'
 # API classes you can override a single one in django settings

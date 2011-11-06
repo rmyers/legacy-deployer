@@ -1,4 +1,5 @@
 import os
+import sys
 
 from logging import getLogger
 
@@ -8,14 +9,15 @@ from cannula.api import DuplicateObject
 from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
 from cannula.api import BaseAPI
-from cannula.conf import api, CANNULA_GIT_CMD
+from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_CMD
 from cannula.utils import write_file
-
-Project = get_model('cannula', 'project')
 
 log = getLogger('api')
 
 class ProjectAPI(BaseAPI):
+    
+    model = get_model('cannula', 'project')
+    
     # TODO: wire up using different users
     useradd_cmd = '/usr/sbin/useradd %(options)s %(name)s'
     userdel_cmd = '/usr/sbin/userdel -r %(name)s'
@@ -24,11 +26,11 @@ class ProjectAPI(BaseAPI):
 
     
     def _get(self, projectname):
-        if isinstance(projectname, Project):
+        if isinstance(projectname, self.model):
             return projectname
         try:
-            return Project.objects.get(name=projectname)
-        except Project.DoesNotExist:
+            return self.model.objects.get(name=projectname)
+        except self.model.DoesNotExist:
             raise UnitDoesNotExist("Project does not exist") 
     
     def get(self, projectname):
@@ -38,11 +40,11 @@ class ProjectAPI(BaseAPI):
         # TODO: handle user arg?
         if group:
             return group.project_set.all()
-        return Project.objects.all()
+        return self.model.objects.all()
     
     
     def _create(self, group, name, description):
-        project, created = Project.objects.get_or_create(group=group, name=name, 
+        project, created = self.model.objects.get_or_create(group=group, name=name, 
             defaults={'description':description})
         if not created:
             raise DuplicateObject("Project already exists!")
@@ -120,11 +122,18 @@ class ProjectAPI(BaseAPI):
         }
         shell(self.git_init_cmd % args)
         
-        ctx = {'project': project}
+        ctx = {
+            'project': project,
+            'cannula_admin': CANNULA_CMD,
+            # The current setting file
+            'settings': os.environ['DJANGO_SETTINGS_MODULE'],
+            # The current python executable (could be in a virtualenv)
+            'python': sys.executable}
         # Update git config in new repo
         write_file(project.git_config, 'git/git-config.txt', ctx)
-        # Write out post-recieve hook
+        # Write out post-recieve hook and make it executable
         write_file(project.post_receive, 'git/post-receive.sh', ctx)
+        shell('chmod 755 %s' % project.post_receive)
         # Write out a description file
         write_file(project.git_description, 'git/description.txt', ctx)
         
