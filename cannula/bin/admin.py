@@ -62,10 +62,8 @@ def main():
     (options, args) = parser.parse_args()
     if len(args) < 2:
         parser.error("incorrect number of arguments")
-    if not options.settings:
-        sys.exit("Cannula users authorized_key file is missing settings file!")
-    
-    os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
+    if options.settings:
+        os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
         
     user = args[0]
     command = args[1]
