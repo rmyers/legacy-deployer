@@ -40,24 +40,25 @@ def create_group(user, name, description):
     from cannula.conf import api
     return api.groups.create(name, user, description)
 
-def has_perm(user, perm, group=None, project=None, **kwargs):
+def has_perm(user, perm, group=None, project=None, repo=None):
     """
     Check that a user has a certain permission. 
     Exit non-zero if not so bash scripts may use this.
     """
     from cannula.conf import api
+    if repo is not None:
+        # TODO: make this better
+        group = repo.split('/')[0]
     if api.permissions.has_perm(user, perm, group, project):
         return True
     sys.exit("Access Denied!")
 
 def main():
     parser = OptionParser(__doc__)
-    parser.add_option("--settings", dest="settings",
-                      help="Django settings file to use")
-    parser.add_option("--project", dest="project",
-                      help="project to update")
-    parser.add_option("--group", dest="group",
-                      help="group to update")
+    parser.add_option("--settings", dest="settings", help="settings file to use")
+    parser.add_option("--project", dest="project", help="project to update")
+    parser.add_option("--group", dest="group",help="group to update")
+    parser.add_option("--repo", dest="repo", help="repo to update")
     
     (options, args) = parser.parse_args()
     if len(args) < 2:
@@ -92,7 +93,8 @@ def main():
         if len(args) > 3:
             parser.error("Must specify permission!")
         perm = args[2]
-        return has_perm(user, perm, **options)
+        return has_perm(user, perm, group=options.group, 
+            project=options.project, repo=options.repo)
     
     else:
         parser.error("command not found!")
