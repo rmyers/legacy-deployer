@@ -14,8 +14,11 @@ cannula:
 
     python setup.py develop
      
-#. ``cd gitproject``
-#. ``python manage.py syncdb``
-#. ``python manage.py initialize``
-#. ``python manage.py runserver``
+#. Fire up django dev server::
+
+    cd gitproject
+    python manage.py syncdb
+    python manage.py initialize
+    python manage.py runserver
+    
 #. Use the newly spawned server, enjoy!
