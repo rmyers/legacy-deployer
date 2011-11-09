@@ -1,0 +1,47 @@
+# optional domain to listen on
+domain: prod.example.com
+# optional version string
+version: 1.0
+# runtime (ruby, python, php, java)
+runtime: python
+api_version: 1
+
+# worker specific settings invalid settings ignored
+# cannula will override certain process specific settings
+server: 
+  workers: 2
+  worker-class: sync
+  worker-connections: 1000
+  max_requests: 0
+  timeout: 30
+  keepalive: 2
+  
+# Main wsgi handlers and static file definitions
+# Each unique 'script' handler will setup a separate process
+handlers:
+- url: /
+  worker: cannula.worker.gunicorn
+  script: home.py
+
+# another entry point to the same script
+- url: /index\.html
+  worker: cannula.worker.gunicorn
+  script: home.py
+
+# static files
+- url: /static
+  static_dir: path/to/static/folder
+
+# static file match handler
+- url: /(.*\.(gif|png|jpg))
+  static_files: static/\1
+  upload: static/(.*\.(gif|png|jpg))
+
+- url: /admin/.*
+  worker: cannula.worker.gunicorn
+  script: admin.py
+  secure: true
+
+- url: /.*
+  worker: cannula.worker.gunicorn_django
+  settings: myproject.settings

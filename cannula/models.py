@@ -101,6 +101,10 @@ class Project(models.Model):
         return os.path.join(conf.CANNULA_BASE, directory)
     
     @property
+    def appconfig(self):
+        return os.path.join(self.project_dir, 'app.yaml')
+    
+    @property
     def unix_id(self):
         """Used for system username."""
         return u'%s.%s' % (self.group.name, self.name)

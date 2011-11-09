@@ -35,7 +35,7 @@
 #
 
 CANNULA_CMD={{ cannula_cmd }}
-PYTHON_EXE={{ python_exe }}
+CANNULA_ROOT={{ cannula_root }}
 
 # This needs to be globally available
 # This is the settings file of the actual project running cannula
@@ -71,7 +71,7 @@ case $CMD in
         fi
         
         # Do the push and deploy
-        exec $SSH_ORIGINAL_COMMAND
+        $CMD $CANNULA_ROOT/$REPO
         if [[ ! $? == 0 ]]
         then 
             echo "Push failed, please reset project!"
