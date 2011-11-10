@@ -8,10 +8,23 @@ from django.db.models.loading import get_model
 
 from cannula.api import BaseAPI, ApiError
 from cannula.conf import api, proxy, CANNULA_GIT_CMD
-from cannula.utils import write_file, shell
+from cannula.utils import write_file, shell, import_object
 
 log = getLogger('api')
 
+class Handler(object):
+    """Simple object to hold properties for wsgi handlers"""
+    
+    def __init__(self, url='', worker='', server={}, **kwargs):
+        self.url = url
+        self.worker = import_object(worker)
+        self.server = server
+        self.kwargs = kwargs
+    
+    @property
+    def conf_template(self):
+        pass
+    
 class DeployAPI(BaseAPI):
     
     def deploy(self, project):
@@ -31,5 +44,8 @@ class DeployAPI(BaseAPI):
         #        # check against repo
         #        # cd project; git-log -1 -- app.yaml | awk '/commit/ {print $2}'
         #
-        
-                
+        for handler in config.get('handlers', []):
+            
+            
+        worker = import_object(config['worker'])
+        write_file()        

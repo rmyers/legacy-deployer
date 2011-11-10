@@ -34,8 +34,8 @@
 #
 #
 
-CANNULA_CMD={{ cannula_cmd }}
-CANNULA_ROOT={{ cannula_root }}
+export CANNULA_CMD={{ cannula_cmd }}
+export CANNULA_ROOT={{ cannula_root }}
 
 # This needs to be globally available
 # This is the settings file of the actual project running cannula
@@ -47,7 +47,7 @@ then
     echo "Username is required!"
     exit 1
 else
-    C_USER=$1
+    export C_USER=$1
 fi
 
 # split 'command args' to see what were running
@@ -57,13 +57,13 @@ CMD=`echo $SSH_ORIGINAL_COMMAND | awk '{print $1}'`
 case $CMD in
     "")
         # no command found default just info command
-        $PYTHON_EXE $CANNULA_CMD $C_USER info
+        $CANNULA_CMD $C_USER info
         ;;
         
     "git-receive-pack")
         # Check permissions to repo
         REPO=`echo $SSH_ORIGINAL_COMMAND | awk '{print $2}'`
-        $PYTHON_EXE $CANNULA_CMD $C_USER has_perm deploy --repo=$REPO
+        $CANNULA_CMD $C_USER has_perm deploy --repo=$REPO
         if [[ ! $? == 0 ]]
         then 
             echo "Access denied!"
@@ -79,12 +79,12 @@ case $CMD in
         fi
         
         # Do the actual deployment
-        $PYTHON_EXE $CANNULA_CMD $C_USER deploy --repo=$REPO
+        $CANNULA_CMD $C_USER deploy --repo=$REPO
         ;;
         
     *)
         # Just pass everything onto the cannula command
-        $PYTHON_EXE $CANNULA_CMD $C_USER $SSH_ORIGINAL_COMMAND
+        $CANNULA_CMD $C_USER $SSH_ORIGINAL_COMMAND
         ;;
 esac
 

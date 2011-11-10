@@ -14,6 +14,7 @@ Requirements
 
 * pyyaml
 * Django >= 1.3.1
+* virtualenv >= 1.5.1
 * git
 * openssh
 
