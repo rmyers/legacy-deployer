@@ -6,9 +6,8 @@ version: 1.0
 runtime: python
 api_version: 1
 
-# worker specific settings invalid settings ignored
-# cannula will override certain process specific settings
-server: 
+# setup some defaults to pass to handlers
+gunicorn_defaults: 
   workers: 2
   worker-class: sync
   worker-connections: 1000
@@ -17,31 +16,20 @@ server:
   keepalive: 2
   
 # Main wsgi handlers and static file definitions
-# Each unique 'script' handler will setup a separate process
+# Each unique 'worker' handler will setup a separate process
 handlers:
-- url: /
-  worker: cannula.worker.gunicorn
-  script: home.py
-
-# another entry point to the same script
-- url: /index\.html
-  worker: cannula.worker.gunicorn
-  script: home.py
-
-# static files
+# static files (less greedy urls should come first!)
 - url: /static
   static_dir: path/to/static/folder
 
-# static file match handler
-- url: /(.*\.(gif|png|jpg))
-  static_files: static/\1
-  upload: static/(.*\.(gif|png|jpg))
-
-- url: /admin/.*
+- url: /admin
   worker: cannula.worker.gunicorn
   script: admin.py
   secure: true
+  defaults: gunicorn_defaults
 
-- url: /.*
+# Main site handler will match everything else
+- url: /
   worker: cannula.worker.gunicorn_django
   settings: myproject.settings
+  defaults: gunicorn_defaults
