@@ -14,6 +14,8 @@ CANNULA_BASE = '/cannula/'
 #     'cannula.proxy.apache'
 #     or roll your own and provide the dotted path here
 CANNULA_PROXY = 'cannula.proxy.nginx'
+# Process Supervisor
+CANNULA_SUPERVISOR = 'cannula.supervisor.Supervisor'
 # Path to 'git' command
 CANNULA_GIT_CMD = 'git'
 # Cannula admin command
@@ -24,7 +26,7 @@ CANNULA_WORKER = 'gunicorn'
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
     #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
-    #'deployments': 'cannula.api.djangodb.deployments.DeploymentAPI',
+    'deploy': 'cannula.api.v2.DeployAPI',
     'groups': 'cannula.api.v2.groups.GroupAPI',
     'log': 'cannula.api.v2.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
@@ -44,6 +46,7 @@ if os.environ.get('DJANGO_SETTINGS_MODULE'):
     from django.conf import settings
     CANNULA_BASE = getattr(settings, 'CANNULA_BASE', CANNULA_BASE)
     CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', CANNULA_PROXY)
+    CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', CANNULA_SUPERVISOR)
     CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', CANNULA_GIT_CMD)
     CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', CANNULA_LOCK_TIMEOUT)
     # Update the api with user specified Classes.
@@ -65,7 +68,7 @@ class LazyAPI(object):
 class API:
     
     #clusters = LazyAPI(CANNULA_API['clusters'])
-    #deployments = LazyAPI(CANNULA_API['deployments'])
+    deploy = LazyAPI(CANNULA_API['deploy'])
     groups = LazyAPI(CANNULA_API['groups'])
     log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
@@ -76,7 +79,8 @@ class API:
     #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
 
     def __init__(self):
-        self._defaults = ['log', 'groups',  'projects', 'users', 'permissions']
+        self._defaults = ['log', 'groups',  'projects', 'users', 
+                          'permissions', 'deploy']
         # Allow for user defined API for any option not found
         # in the defaults add it now.
         for option, value in CANNULA_API.iteritems():
@@ -86,6 +90,7 @@ class API:
 
 api = API()
 proxy = import_object(CANNULA_PROXY)
+supervisor = import_object(CANNULA_SUPERVISOR)
 
 #TODO: delete these 
 WORKER_CHOICES = []

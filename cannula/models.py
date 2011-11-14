@@ -158,3 +158,19 @@ class Log(models.Model):
         app_label = "cannula"
         ordering = ('-timestamp',)
         get_latest_by = ('timestamp')
+
+class Deployment(models.Model):
+    """Deployment instance of a project."""
+    project = models.ForeignKey(Project)
+    user = models.ForeignKey(User)
+    oldrev = models.CharField(max_length=100)
+    newrev = models.CharField(max_length=100)
+    conf_oldrev = models.CharField(max_length=100)
+    conf_newrev = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(default=datetime.now)
+    
+    class Meta:
+        app_label = "cannula"
+    
+    def __unicode__(self):
+        return "Deployment of: %s @ %s" % (self.project, self.newrev)
