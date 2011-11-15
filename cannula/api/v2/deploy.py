@@ -11,7 +11,7 @@ from logging import getLogger
 from django.db.models.loading import get_model
 
 from cannula.api import BaseAPI, ApiError
-from cannula.conf import api, proxy, supervisor, CANNULA_GIT_CMD
+from cannula.conf import api, proxy, supervisor, CANNULA_GIT_CMD, CANNULA_BASE
 from cannula.utils import write_file, shell, import_object
 
 log = getLogger('api')
@@ -65,30 +65,32 @@ class DeployAPI(BaseAPI):
             
                 # Simple counter to make unique names for each handler
                 handler_position = 0
-                vhost_sections = []
+                sections = []
                 for handler in config.get('handlers', []):
                     if handler.get('worker'):
                         # Setup worker
                         name = '%s_%d' % (project.name, handler_position)
                         handle = Handler(name, **handler)
                         # write out start up scripts
-                        handle.write_supervisor_conf(project)
                         handle.write_startup_script(project)
                         # add handler to vhost_sections
-                        vhost_sections.append(handle)
+                        sections.append(handle)
                         handler_position += 1
                     else:
                         # Just pass the dictionary to the proxy vhosts
-                        vhost_sections.append(handler)
+                        sections.append(handler)
                 
                 # Write out the proxy file to serve this app
                 ctx = {
-                    'sections': vhost_sections,
+                    'sections': sections,
                     'domain': config.get('domain', project.default_domain),
                     'runtime': config.get('runtime', 'python'),
-                    'port': config.get('port', 80)
+                    'port': config.get('port', 80),
+                    'project_conf_dir': project.conf_root,
+                    'conf_dir': os.path.join(CANNULA_BASE, 'config'),
                 }
                 write_file(project.vhost_conf, proxy.template, ctx)
+                write_file(project.supervisor_conf, supervisor.template, ctx)
                 
                 # Check if any files changed and check if still valid
                 shell(self.git_add_cmd, cwd=project.conf_root)
