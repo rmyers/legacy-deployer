@@ -1,0 +1,3 @@
+
+class Supervisor(object):
+    pass
