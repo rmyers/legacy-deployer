@@ -16,6 +16,7 @@ CANNULA_BASE = '/cannula/'
 CANNULA_PROXY = 'cannula.proxy.nginx'
 # Process Supervisor
 CANNULA_SUPERVISOR = 'cannula.supervisor.Supervisor'
+SUPERVISOR_PORT = 'http://localhost:9001'
 # Path to 'git' command
 CANNULA_GIT_CMD = 'git'
 # Cannula admin command
