@@ -40,57 +40,38 @@ class Proxy(object):
         self.base = os.path.join(self.cannula_base, self.name)
         self.main_conf = os.path.join(self.base, '%s.conf' % self.name)
         self.vhost_base = os.path.join(self.base, 'vhosts')
+        self.context = {
+            'cannula_base': self.cannula_base,
+            'vhost_base': self.vhost_base,
+        }
     
-    def write_file(self, filename, context, template=None):
+    def write_file(self, context, template):
         """
         Write file to the filesystem, if the template does not 
         exist fail silently. Otherwise write the file out and return
         boolean if the content had changed from last write. If the 
         file is new then return True.
         """
-        if template is None:
-            template = os.path.basename(filename)
         if '/' not in template:
             # template is not a full path, generate it now.
             template = posixpath.join(self.template_base, template)
         try:
             content = render_to_string(template, context)
         except TemplateDoesNotExist:
-            return False
+            return ''
         
-        if not os.path.isdir(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename), mode=0750)
-        
-        original_content = ''
-        if os.path.isfile(filename):
-            with open(filename, 'rb') as file:
-                original_content = file.read()
-        
-        with open(filename, 'wb') as file:
-            file.write(content)
-        
-        return content != original_content
-
-    
-    def write_worker_conf(self, worker, deployment, context):
-        name = "%s_%s.conf" % (deployment.project.group.abbr,
-                               deployment.project.abbr)
-        vhost = self.default_vhost
-        if deployment.vhost:
-            vhost = self.default_vhost
-        filename = os.path.join(self.vhost_base, vhost, name)
-        
-        return self.write_file(filename, context, '%s.conf' % worker)
-        
+        return content
      
-    def write_main_conf(self, context={}):
-        return self.write_file(self.main_conf, context, 'main.conf')
+    def write_main_conf(self, extra_context={}):
+        ctx = self.context.copy()
+        ctx.update(extra_context)
+        return self.write_file(ctx, 'main.conf')
     
-    def write_vhost_conf(self, vhost, context={}):
-        vhost_name = vhost.replace('.', '_') + '.conf'
-        vhost_conf_file = os.path.join(self.vhost_base, vhost_name)
+    def write_vhost_conf(self, extra_context={}):
+        ctx = self.context.copy()
+        ctx.update(extra_context)
+        return self.write_file(ctx, 'vhost.conf')
         
-        return self.write_file(vhost_conf_file, context, 'vhost.conf')
 
 
 apache = Proxy(name='apache')
