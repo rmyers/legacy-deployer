@@ -86,7 +86,6 @@ class ProjectAPI(BaseAPI):
         project = self._create(group=group,name=name,description=description)
         log.info("Project %s created in %s" % (project, group))
         api.log.create("Project %s created" % project, user=user, group=group, project=project)
-        self.initialize(project, user)
         return project
     
     

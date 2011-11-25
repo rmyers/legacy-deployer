@@ -70,6 +70,12 @@ case $CMD in
             exit 1
         fi
         
+        if [[ ! -e $CANNULA_ROOT/$REPO ]]
+        then 
+            # initialize the project
+            $CANNULA_CMD $C_USER initialize --repo=$REPO
+        fi
+        
         # Do the push and deploy
         $CMD $CANNULA_ROOT/$REPO
         if [[ ! $? == 0 ]]

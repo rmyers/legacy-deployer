@@ -20,3 +20,9 @@ class BaseAPI(object):
         """Wrapper for render_to_response logic."""
         req = RequestContext(request, context)
         return render_to_response(templates, context_instance=req)
+    
+    def __init__(self, server=None):
+        self._cannula_server = server
+    
+    def _send(self, *args, **kwargs):
+        """Send a command to the remote cannula server."""
