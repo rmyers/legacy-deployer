@@ -5,24 +5,41 @@ from cannula.utils import import_object
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
-##### Defaults #####################################################
+# Check for if Django settings module is defined.
+if os.environ.get('DJANGO_SETTINGS_MODULE'):
+    from django.conf import settings
+else:
+    # TODO: Allow basic ini file settings
+    class settings(object):
+        """Just a dumb placeholder for no defaults."""
+#
+# CANNULA DEFAULT SETTINGS
+#
+
 # Base directory where configuration files are placed.
 # This must be writable by the user running cannula.
-CANNULA_BASE = '/cannula/'
+CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/cannula/')
+
 # Proxy client, default options are:
 #     'cannula.proxy.nginx'
 #     'cannula.proxy.apache'
 #     or roll your own and provide the dotted path here
-CANNULA_PROXY = 'cannula.proxy.nginx'
-# Process Supervisor
-CANNULA_SUPERVISOR = 'cannula.supervisor.supervisor'
-SUPERVISOR_PORT = 'http://localhost:9001'
+CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', 'cannula.proxy.nginx')
+
+# Process Supervisor Settings
+CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', 'cannula.supervisor.supervisor')
+CANNULA_SUPERVISOR_USE_INET = getattr(settings, 'CANNULA_SUPERVISOR_USE_INET', False)
+CANNULA_SUPERVISOR_INET_PORT = getattr(settings, 'CANNULA_SUPERVIOR_INET_PORT', 'http://localhost:9001')
+CANNULA_SUPERVISOR_USER = getattr(settings, 'CANNULA_SUPERVISOR_USER', 'watchman')
+CANNULA_SUPERVISOR_PASSWORD = getattr(settings, 'CANNULA_SUPERVISOR_PASSWORD', 'ChangeMeBro!')
+
 # Path to 'git' command
-CANNULA_GIT_CMD = 'git'
+CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', 'git')
+
 # Cannula admin command
-CANNULA_CMD = os.path.join(CURRENT_DIR, 'bin', 'admin.py')
-# Worker types enabled
-CANNULA_WORKER = 'gunicorn'
+_cannula_cmd = os.path.join(CURRENT_DIR, 'bin', 'admin.py')
+CANNULA_CMD = getattr(settings, 'CANNULA_CMD', _cannula_cmd)
+
 # API classes you can override a single one in django settings
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
@@ -37,22 +54,12 @@ CANNULA_API = {
     #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
     'users': 'cannula.api.v2.users.UserAPI',
 }
-#
-# Lock timeout in seconds
-CANNULA_LOCK_TIMEOUT = 30
-#### END Defaults ###################################################
+# Update the api with user specified Classes.
+_api = getattr(settings, 'CANNULA_API', {})
+CANNULA_API.update(_api)
 
-# Check for if Django settings module is defined.
-if os.environ.get('DJANGO_SETTINGS_MODULE'):
-    from django.conf import settings
-    CANNULA_BASE = getattr(settings, 'CANNULA_BASE', CANNULA_BASE)
-    CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', CANNULA_PROXY)
-    CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', CANNULA_SUPERVISOR)
-    CANNULA_GIT_CMD = getattr(settings, 'CANNULA_GIT_CMD', CANNULA_GIT_CMD)
-    CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', CANNULA_LOCK_TIMEOUT)
-    # Update the api with user specified Classes.
-    _api = getattr(settings, 'CANNULA_API', {})
-    CANNULA_API.update(_api)
+# Lock timeout in seconds
+CANNULA_LOCK_TIMEOUT = getattr(settings, 'CANNULA_LOCK_TIMEOUT', 30)
 
 class LazyAPI(object):
     

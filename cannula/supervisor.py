@@ -3,10 +3,14 @@ import logging
 import xmlrpclib
 import posixpath
 
+from supervisor.xmlrpc import SupervisorTransport
+
 from django.template.loader import render_to_string
 from django.template.base import TemplateDoesNotExist
 
-from cannula.conf import CANNULA_BASE, SUPERVISOR_PORT
+from cannula.conf import (CANNULA_BASE, CANNULA_SUPERVISOR_INET_PORT, 
+    CANNULA_SUPERVISOR_USE_INET, CANNULA_SUPERVISOR_USER,
+    CANNULA_SUPERVISOR_PASSWORD)
 from cannula.utils import shell
 
 log = logging.getLogger("cannula.supervisor")
@@ -15,15 +19,34 @@ class Supervisor(object):
     
     main_conf_template = 'supervisor/supervisor_main.conf'
     template = 'supervisor/supervisor.conf'
-    port = SUPERVISOR_PORT
     
     def __init__(self):
-        self.server = xmlrpclib.Server(self.port)
         self.template_base = 'supervisor'
+        self.base = CANNULA_BASE
+        self.socket = os.path.join(self.base, 'supervisor.sock')
+        self.username = CANNULA_SUPERVISOR_USER
+        self.password = CANNULA_SUPERVISOR_PASSWORD
+        self.use_inet = CANNULA_SUPERVISOR_USE_INET
+        self.inet_port = CANNULA_SUPERVISOR_INET_PORT
+        self.serverurl = self.inet_port if self.use_inet else self.socket
         self.context = {
-            'cannula_base': CANNULA_BASE,
-            'port': SUPERVISOR_PORT,
+            'cannula_base': self.base,
+            'inet_port': self.inet_port,
+            'use_inet_port': self.use_inet,
+            'http_user': self.username,
+            'http_password': self.password,
+            'supervisor_sock': self.socket,
         }
+        # Setup the connection to the xmlrpc backend
+        # xmlrpclib forces you to use an http uri, the SupervisorTransport
+        # handles unix sockets as well as usernames and passwords.
+        self.server = xmlrpclib.ServerProxy('http://127.0.0.1',
+            transport=SupervisorTransport(
+                username=self.username,
+                password=self.password,
+                serverurl=self.serverurl
+            )
+        )
     
     def reread(self):
         return self.server.supervisor.reloadConfig()
