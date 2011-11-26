@@ -27,7 +27,7 @@ CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/cannula/')
 CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', 'cannula.proxy.nginx')
 
 # Process Supervisor Settings
-CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', 'cannula.supervisor.supervisor')
+CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', 'cannula.proc.supervisord')
 CANNULA_SUPERVISOR_USE_INET = getattr(settings, 'CANNULA_SUPERVISOR_USE_INET', False)
 CANNULA_SUPERVISOR_INET_PORT = getattr(settings, 'CANNULA_SUPERVIOR_INET_PORT', 'http://localhost:9001')
 CANNULA_SUPERVISOR_USER = getattr(settings, 'CANNULA_SUPERVISOR_USER', 'watchman')

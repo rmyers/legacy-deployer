@@ -15,7 +15,7 @@ from cannula.utils import shell
 
 log = logging.getLogger("cannula.supervisor")
 
-class Supervisor(object):
+class Supervisord(object):
     
     main_conf_template = 'supervisor/supervisor_main.conf'
     template = 'supervisor/supervisor.conf'
@@ -23,7 +23,8 @@ class Supervisor(object):
     def __init__(self):
         self.template_base = 'supervisor'
         self.base = CANNULA_BASE
-        self.socket = os.path.join(self.base, 'supervisor.sock')
+        self.socket_path = os.path.join(self.base, 'supervisor.sock')
+        self.socket = 'unix://%s' % self.socket_path
         self.username = CANNULA_SUPERVISOR_USER
         self.password = CANNULA_SUPERVISOR_PASSWORD
         self.use_inet = CANNULA_SUPERVISOR_USE_INET
@@ -32,10 +33,12 @@ class Supervisor(object):
         self.context = {
             'cannula_base': self.base,
             'inet_port': self.inet_port,
+            'serverurl': self.serverurl,
             'use_inet_port': self.use_inet,
             'http_user': self.username,
             'http_password': self.password,
             'supervisor_sock': self.socket,
+            'socket_path': self.socket_path,
         }
         # Setup the connection to the xmlrpc backend
         # xmlrpclib forces you to use an http uri, the SupervisorTransport
@@ -95,4 +98,4 @@ class Supervisor(object):
         ctx.update(extra_context)
         return self.write_file(ctx, self.main_conf_template)
 
-supervisor = Supervisor()
+supervisord = Supervisord()
