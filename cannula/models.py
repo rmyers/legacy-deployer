@@ -1,5 +1,6 @@
 from datetime import datetime
 import re
+from base64 import b64decode
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -23,6 +24,27 @@ def valid_name(name):
             "only letters, numbers, underscore and dashes.")
     if name in RESERVED_WORDS:
         raise ValidationError("%s is a reserved name sorry." % name)
+
+def valid_key(key):
+    parts = key.split()
+    if not parts[0] in ['ssh-rsa', 'ssh-dsa']:
+        raise ValidationError("Keys must be in ssh-rsa or ssh-dsa format")
+    try:
+        decoded = b64decode(parts[1])
+    except:
+        # keys are base64 encoded
+        raise ValidationError("Invalid key encoding!")
+    # check the encoded string header matches
+    # length of header string in key stored in 4 byte
+    try:
+        length = ord(decoded[3])
+        # string starts at the 5th byte to length
+        key_type = decoded[4:length+4]
+        if key_type != parts[0]:
+            raise ValidationError("Key type and header do not match!")
+    except IndexError:
+        raise ValidationError("Key string too short!")
+    
 
 class ProjectGroup(models.Model):
     """
@@ -157,21 +179,12 @@ class Project(models.Model):
     
 class Key(models.Model):
     
+    user = models.ForeignKey(User)
     name = models.CharField(max_length=255)
-    ssh_key = models.TextField()
+    ssh_key = models.TextField(validators=[valid_key])
     
     def __unicode__(self):
         return self.name
-
-class Profile(models.Model):
-    
-    user = models.ForeignKey(User)
-    twitter = models.CharField(max_length=255, blank=True)
-    facebook = models.CharField(max_length=255, blank=True)
-    ssh_keys = models.ManyToManyField(Key)
-    
-    def __unicode__(self):
-        return self.user
 
 class Log(models.Model):
     """

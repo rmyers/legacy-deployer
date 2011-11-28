@@ -3,7 +3,6 @@ from django.contrib.auth.models import Permission
 
 from cannula.models import *
 
-admin.site.register(Profile)
 admin.site.register(Key)
 admin.site.register(Project)
 admin.site.register(Permission)

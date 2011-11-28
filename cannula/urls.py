@@ -3,14 +3,21 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
 from cannula.conf import api
-from cannula.views import Index, CreateProject, GroupView, ProjectView, CreateGroup
+from cannula.views import Index, CreateProject, GroupView, ProjectView, CreateGroup, CreateKey
 
 urlpatterns = patterns('',
     url(r'^$', login_required(Index.as_view()), name='cannula-index'),
+    (r'^accounts/login/$', 'django.contrib.auth.views.login', 
+        {'template_name': 'cannula/form.html'}),
+    (r'^accounts/logout/$', 'django.contrib.auth.views.logout',
+        {'template_name': 'cannula/logged_out.html'}),
+    (r'^accounts/profile/$', 'cannula.views.profile'),
     url(r'^create/group/$', login_required(CreateGroup.as_view()), 
         name='cannula-create-group'),
     url(r'^create/project/$', login_required(CreateProject.as_view()), 
         name='create-project'),
+    url(r'^create/key/$', login_required(CreateKey.as_view()), 
+        name='create-key'),
     url(r'^groups/$', CreateGroup.as_view(), name='cannula-groups'),
     #url(r'^groups/(?P<group>[^/]*)/$', api.groups.details_view, name='group-details'),
     #url(r'^groups/(?P<group>[^/]*)/__(?P<action>add|mod)/$', api.groups.mod_member_view, name='group-mod-member'),

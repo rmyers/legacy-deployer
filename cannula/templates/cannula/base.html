@@ -35,7 +35,7 @@
           {% if user.is_authenticated %}
           <div id="user-links" class="pull-right">
           	<img src="{% gravatar_url user.email 20 %}" alt="{{ user.username }}" />
-          	<a href="/account/profile/">
+          	<a href="/accounts/profile/">
 	            {% filter force_escape %}{% firstof user.first_name user.username %}{% endfilter %}
           	</a> / 
             <a href="/accounts/logout/">Log out</a>

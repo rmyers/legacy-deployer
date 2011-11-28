@@ -1,8 +1,7 @@
 
 from django import forms
 
-from cannula.models import Project, ProjectGroup, Profile, Key
-from django.contrib.auth.models import User
+from cannula.models import Project, ProjectGroup, Key
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -31,3 +30,13 @@ class ProjectGroupForm(forms.ModelForm):
         """
         self.user = kwargs.pop('user')
         super(ProjectGroupForm, self).__init__(*args, **kwargs)
+
+class SSHKeyForm(forms.ModelForm):
+    class Meta:
+        model = Key
+        exclude = ['user']
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super(SSHKeyForm, self).__init__(*args, **kwargs)
+    

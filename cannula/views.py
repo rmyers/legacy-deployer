@@ -11,12 +11,23 @@ from django.views.generic.base import TemplateResponseMixin, View, TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import ModelFormMixin, CreateView
 
-from cannula.models import Profile, Project, Key, ProjectGroup
-from cannula.forms import ProjectForm, ProjectGroupForm
+from cannula.models import Project, Key, ProjectGroup
+from cannula.forms import ProjectForm, ProjectGroupForm, SSHKeyForm
 from cannula.conf import api
 
 
 log = getLogger('cannula.views')
+
+@login_required
+def profile(request):
+    keys = api.keys.list(user=request.user)
+    groups = api.groups.list(user=request.user)
+    return render_to_response('cannula/profile.html',
+        RequestContext(request, {
+            'keys': keys,
+            'groups': groups,
+        })
+    )
 
 class AuthMixin(object):
     @method_decorator(login_required)
@@ -87,6 +98,30 @@ class CreateGroup(CreateView):
         data['user'] = form.user
         self.object = api.groups.create(**data)
         return HttpResponseRedirect(self.get_success_url())
+
+class CreateKey(CreateView):
+    
+    model = Key
+    form_class = SSHKeyForm
+    template_name = 'cannula/form.html'
+    
+    def get_context_data(self, **kwargs):
+        kwargs.update({'title': 'Create Key'})
+        return kwargs
+    
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instanciating the form.
+        """
+        kwargs = super(CreateKey, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+    
+    def form_valid(self, form):
+        data = form.cleaned_data
+        data['user'] = form.user
+        self.object = api.keys.create(**data)
+        return HttpResponseRedirect('/accounts/profile/')
 
 class GroupView(DetailView):
     

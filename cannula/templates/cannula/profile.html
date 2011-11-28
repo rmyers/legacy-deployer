@@ -1,0 +1,39 @@
+{%  extends "cannula/base.html" %}
+{% load gravatar %}
+
+{% block content %}
+<h3>{{ user }}</h3>
+<div class="news">
+    <img src="{% gravatar_url user.email 100 %}" alt="{{ user.username }}" />
+    <div class="message">
+        <p>username: {{ user.username }}</p>
+        <p>email: {{ user.email }}</p>
+        <p>Member since {{ user.date_joined|date }}</p>
+    </div>
+</div>
+
+<h3>SSH Keys</h3>
+<ul>
+{% for key in keys %}
+    <li>{{ key }}</li>
+{% endfor %} 
+    <li><a href="{% url create-key %}">Add Key</a></li>   
+</ul>
+
+{% endblock %}
+
+
+{% block sidebar %}
+<h3>Groups</h3>
+{% for group in groups %}
+	<h4>{{ group }}</h4>
+	<ul>
+	{% for project in group.project_set.all %}
+		<li><a href="#">{{ project.group.name }}/{{ project.name }}</a></li>
+	{% endfor %}
+	{% if group in groups_create %}
+	    <li><a href="{% url create-project %}?group={{ group.name }}" class="addlink">Add Project</a></li>
+	{% endif %}
+	</ul>
+{% endfor %}
+{% endblock %}
