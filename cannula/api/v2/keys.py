@@ -1,4 +1,6 @@
+import os
 from logging import getLogger
+from shutil import copy2
 
 from django.db.models.loading import get_model
 
@@ -54,4 +56,18 @@ class KeyAPI(BaseAPI):
         }
         return render_to_string('cannula/authorized_keys.txt', ctx)
         
+    def write_keys(self):
+        """Write the key file to the current users .ssh/authorized_keys file."""
+        key_file = self.authorized_keys()
+        ssh_path = os.path.expanduser('~/.ssh')
+        authorized_keys = os.path.join(ssh_path, 'authorized_keys')
+        if not os.path.isdir(ssh_path):
+            os.makedirs(ssh_path, mode=0700)
         
+        if os.path.isfile(authorized_keys):
+            # save the old version just incase
+            copy2(authorized_keys, '%s.bak' % authorized_keys)
+        
+        # Write the authorized keys file
+        with open(authorized_keys, 'w') as f:
+            f.write(key_file)

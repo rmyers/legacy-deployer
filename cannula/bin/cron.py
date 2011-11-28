@@ -9,27 +9,13 @@ Available commands:
 * authorized_keys: Write out authorized_keys file
 
 """
-import sys
 import os
-from shutil import copy2
 
 from optparse import OptionParser
 
 def keys():
     from cannula.conf import api
-    key_file = api.keys.authorized_keys()
-    ssh_path = os.path.expanduser('~/.ssh')
-    authorized_keys = os.path.join(ssh_path, 'authorized_keys')
-    if not os.path.isdir(ssh_path):
-        os.makedirs(ssh_path, mode=0700)
-    
-    if os.path.isfile(authorized_keys):
-        # save the old version just incase
-        copy2(authorized_keys, '%s.bak' % authorized_keys)
-    
-    # Write the authorized keys file
-    with open(authorized_keys, 'w') as f:
-        f.write(key_file)
+    api.keys.write_keys()
 
 def main():
     parser = OptionParser(__doc__)
