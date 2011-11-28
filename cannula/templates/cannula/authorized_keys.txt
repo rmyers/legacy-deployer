@@ -1,0 +1,3 @@
+{% for key in keys %}
+no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,command="{{cannula_cmd}} {{key.user.username}}" {{key.ssh_key}}
+{% endfor %}

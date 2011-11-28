@@ -8,41 +8,19 @@ from cannula.api import PermissionError
 from cannula.api import BaseAPI
 from cannula.conf import api
 
-log = getLogger('api')
-
-User = get_model('auth', 'user')
+log = getLogger('api.users')
 
 class UserAPI(BaseAPI):
     
-    
-    def _get(self, username, **kwargs):
-        if isinstance(username, User):
-            return username
-        return User.objects.get(username=username)
-
-    
+    model = get_model('auth', 'user')
+    lookup_field = 'username'
+      
     def _create(self, username, **kwargs):
         email = kwargs.get('email', '%s@localhost.com' % username)
         password = kwargs.get('password', '!')
-        new_user = User.objects.create_user(username, email, password)
+        new_user = self.model.objects.create_user(username, email, password)
         self.update(new_user)
         return new_user
-    
-    
-    def get(self, username, **kwargs):
-        """
-        >>> api.users.get('myuser')
-        <User ...>
-        >>> api.users.get('nonexistent')
-        Traceback (most recent call last):
-          ...
-        UnitDoesNotExist:
-        """
-        try:
-            return self._get(username, **kwargs)
-        except:
-            raise UnitDoesNotExist("User does not exist: %s" % username)
-    
     
     def create(self, username, request_user=None, **kwargs):
         req_user = None
@@ -80,7 +58,6 @@ class UserAPI(BaseAPI):
                 output += "\t%s" % project
         
         return output
-        
     
     def update(self, user):
         """Hook for updating user information. (LDAP, external DB, etc.)"""

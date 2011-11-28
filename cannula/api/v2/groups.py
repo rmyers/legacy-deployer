@@ -10,13 +10,7 @@ log = getLogger('api')
 
 class GroupAPI(BaseAPI):
     
-    model = get_model('cannula', 'projectgroup')
-    
-    def _get(self, groupname):
-        if isinstance(groupname, self.model):
-            return groupname
-        return self.model.objects.get(name=groupname)
-    
+    model = get_model('cannula', 'projectgroup')  
     
     def _create(self, name, user, description, **kwargs):
         if not user.has_perm('add_projectgroup'):
@@ -42,12 +36,6 @@ class GroupAPI(BaseAPI):
         else:
             groups = self.model.objects.all()
         return groups.order_by('name').distinct()
-    
-    def get(self, groupname):
-        try:
-            return self._get(groupname)
-        except:
-            raise UnitDoesNotExist("Group does not exist")
     
     
     def create(self, name, user, description='', **kwargs):

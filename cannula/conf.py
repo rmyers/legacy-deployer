@@ -46,6 +46,7 @@ CANNULA_API = {
     #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
     'deploy': 'cannula.api.v2.DeployAPI',
     'groups': 'cannula.api.v2.groups.GroupAPI',
+    'keys': 'cannula.api.v2.keys.KeyAPI',
     'log': 'cannula.api.v2.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
     'permissions': 'cannula.api.v2.permissions.PermissionAPI',
@@ -78,6 +79,7 @@ class API:
     #clusters = LazyAPI(CANNULA_API['clusters'])
     deploy = LazyAPI(CANNULA_API['deploy'])
     groups = LazyAPI(CANNULA_API['groups'])
+    keys = LazyAPI(CANNULA_API['keys'])
     log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
     permissions = LazyAPI(CANNULA_API['permissions'])
@@ -88,7 +90,7 @@ class API:
 
     def __init__(self):
         self._defaults = ['log', 'groups',  'projects', 'users', 
-                          'permissions', 'deploy']
+                          'permissions', 'deploy', 'keys']
         # Allow for user defined API for any option not found
         # in the defaults add it now.
         for option, value in CANNULA_API.iteritems():
