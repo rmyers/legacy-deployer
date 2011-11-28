@@ -18,6 +18,7 @@ setup(
     entry_points = {
         'console_scripts': [
             'cannula-admin = cannula.bin.admin:main',
+            'cannula-cron = cannula.bin.cron:main',
         ]
     },
     url = 'http://bitbucket.org/rmyers/cannula/',
