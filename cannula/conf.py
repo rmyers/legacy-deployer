@@ -25,6 +25,7 @@ CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/cannula/')
 #     'cannula.proxy.apache'
 #     or roll your own and provide the dotted path here
 CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', 'cannula.proxy.nginx')
+CANNULA_PROXY_NEEDS_SUDO = getattr(settings, 'CANNULA_PROXY_NEEDS_SUDO', False)
 
 # Process Supervisor Settings
 CANNULA_SUPERVISOR = getattr(settings, 'CANNULA_SUPERVISOR', 'cannula.proc.supervisord')
