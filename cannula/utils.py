@@ -27,14 +27,13 @@ log = getLogger(__name__)
 def shell(command, cwd=None):
     log.debug('SHELL: %s' % command)
     process = Popen(command.strip(), stdout=PIPE, stderr=PIPE, shell=True, cwd=cwd)
-    log.debug('SHELL PID: %d' % process.pid)
     stdout, stderr = process.communicate()
-    log.debug('SHELL FINISHED COMMUNICATION')
     status = process.returncode
     if status == 0:
         return status, stdout
     else:
-        return status, stderr
+        log.info('Shell returned a non-zero exit code: %s', status)
+        return status, stderr + stdout
 
 
 def shell_escape(text):
