@@ -18,7 +18,7 @@ else:
 
 # Base directory where configuration files are placed.
 # This must be writable by the user running cannula.
-CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/cannula/')
+CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/tmp/cannula/')
 
 # Proxy client, default options are:
 #     'cannula.proxy.nginx'
@@ -46,16 +46,16 @@ CANNULA_CMD = getattr(settings, 'CANNULA_CMD', _cannula_cmd)
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
     #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
-    'deploy': 'cannula.api.v2.DeployAPI',
-    'groups': 'cannula.api.v2.groups.GroupAPI',
-    'keys': 'cannula.api.v2.keys.KeyAPI',
-    'log': 'cannula.api.v2.log.LoggingAPI',
+    'deploy': 'cannula.api.yml.DeployAPI',
+    'groups': 'cannula.api.yml.groups.GroupAPI',
+    'keys': 'cannula.api.yml.keys.KeyAPI',
+    #'log': 'cannula.api.yml.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
-    'permissions': 'cannula.api.v2.permissions.PermissionAPI',
-    'projects': 'cannula.api.v2.projects.ProjectAPI',
+    'permissions': 'cannula.api.yml.permissions.PermissionAPI',
+    'projects': 'cannula.api.yml.projects.ProjectAPI',
     #'servers': 'cannula.api.djangodb.servers.ServerAPI',
     #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
-    'users': 'cannula.api.v2.users.UserAPI',
+    'users': 'cannula.api.yml.users.UserAPI',
 }
 # Update the api with user specified Classes.
 _api = getattr(settings, 'CANNULA_API', {})
@@ -82,10 +82,10 @@ class API:
     deploy = LazyAPI(CANNULA_API['deploy'])
     groups = LazyAPI(CANNULA_API['groups'])
     keys = LazyAPI(CANNULA_API['keys'])
-    log = LazyAPI(CANNULA_API['log'])
+    #log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
     permissions = LazyAPI(CANNULA_API['permissions'])
-    projects = LazyAPI(CANNULA_API['projects'])
+    #projects = LazyAPI(CANNULA_API['projects'])
     #servers = LazyAPI(CANNULA_API['servers'])
     users = LazyAPI(CANNULA_API['users'])
     #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
