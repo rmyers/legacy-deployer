@@ -18,7 +18,7 @@
         <div class="container">
           <ul class="nav">
             <li><a href="/">Home</a></li>
-            <li><a href="{{MEDIA_URL}}cannula/docs/">Documentation</a></li>
+            <li><a href="{{ url_for('static', filename='cannula/docs/README.html') }}">Documentation</a></li>
             <li><a href="#">Groups</a></li>
 
             <li class="dropdown">
@@ -32,11 +32,11 @@
           </ul>
           {% if session.logged_in %}
           <div id="user-links" class="pull-right">
-            <img src="#" alt="{{ session.user }}" />
+            <img src="{{ user.gravatar(site=request.url_root, size=20)}}" alt="{{ session.user }}" />
             <a href="/accounts/profile/">
                {{ user.first_name }} {{ user.last_name }}
             </a> / 
-            <a href="/accounts/logout/">Log out</a>
+            <a href="{{ url_for('logout') }}">Log out</a>
           </div>
           {% else %}
           <form action="{{ url_for('login')}}" method="post" class="pull-right">

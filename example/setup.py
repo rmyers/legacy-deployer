@@ -7,7 +7,9 @@ setup(
     name = 'gitproject',
     version = version,
     install_requires = [
-        'django >= 1.3.1',
+        'flask',
+        'passlib',
+        'jinja2',
         'cannula >= 0.1.0-a',
     ],
     url = 'http://github.com/rmyers/cannula/',
