@@ -104,6 +104,9 @@ api = API()
 proxy = import_object(CANNULA_PROXY)
 supervisor = import_object(CANNULA_SUPERVISOR)
 
-#TODO: delete these 
-WORKER_CHOICES = []
-VCS_CHOICES = []
+# Setup cache
+CANNULA_CACHE = getattr(settings, "CANNULA_CACHE", "werkzeug.contrib.cache.SimpleCache")
+CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_timeout': 60*5})
+
+_cache = import_object(CANNULA_CACHE)
+cache = _cache(**CANNULA_CACHE_OPTIONS)
