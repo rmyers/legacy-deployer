@@ -13,6 +13,8 @@ class UserAPI(BaseYamlAPI):
     model = messages.User
     base_dir = 'users'
     
+    def create_message(self, name, **kwargs):
+        return self.model(name=name, **kwargs)
     
     def delete(self, username, request_user, perm='user.delete'):
         req_user = self.get(request_user)

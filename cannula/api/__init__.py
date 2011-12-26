@@ -10,7 +10,7 @@ from exceptions import PermissionError
 from exceptions import UnitDoesNotExist
 from exceptions import DuplicateObject
 
-from cannula.conf import CANNULA_BASE
+from cannula.conf import CANNULA_BASE, cache
 from cannula.utils import Git, shell
 
 class BaseAPI(object):
@@ -49,7 +49,10 @@ class BaseYamlAPI(object):
             raise ApiError("Attempted absolute path lookup?")
         return os.path.join(self.yaml_dir, '%s.yaml' % name)
     
-    def initialize(self):
+    def _cache_name(self, name):
+        return '%s:%s' % (self.base_dir, name)
+    
+    def _initialize(self):
         if not os.path.isdir(self.yaml_dir):
             os.makedirs(self.yaml_dir)
             shell(Git.init, cwd=self.yaml_dir)
@@ -57,16 +60,19 @@ class BaseYamlAPI(object):
     def get(self, name):
         if not os.path.isdir(self.yaml_dir):
             os.makedirs(self.yaml_dir)
-          
-        try:
-            with open(self.yaml_name(name), 'r') as f:
-                try:
-                    fcntl.flock(f, fcntl.LOCK_EX|os.O_NDELAY)
-                except IOError:
-                    raise ApiError("Unable to lock file.")
-                msg = yaml.load(f.read())
-        except IOError:
-            raise UnitDoesNotExist
+        
+        msg = cache.get(self._cache_name(name))
+        if msg is None:  
+            try:
+                with open(self.yaml_name(name), 'r') as f:
+                    try:
+                        fcntl.flock(f, fcntl.LOCK_EX|os.O_NDELAY)
+                    except IOError:
+                        raise ApiError("Unable to lock file.")
+                    msg = yaml.load(f.read())
+                    cache.set(self._cache_name(name), msg)
+            except IOError:
+                raise UnitDoesNotExist
             
         return msg
     
@@ -74,7 +80,11 @@ class BaseYamlAPI(object):
         """Hook for subclasses to redefine message creation."""
         return self.model(name=name, **kwargs)
     
+    def post_create(self, msg, name, **kwargs):
+        pass
+    
     def create(self, name, **kwargs):
+        
         try:
             self.get(name)
             raise DuplicateObject()
@@ -93,7 +103,10 @@ class BaseYamlAPI(object):
                 yml.write(yaml.dump(msg))
         except:
             raise
-            
+        
+        # run post create hook
+        self.post_create(msg, name, **kwargs)
+        cache.set(self._cache_name(name), msg)
         return msg
         
     def write(self, name, message):
@@ -104,6 +117,7 @@ class BaseYamlAPI(object):
                 except IOError:
                     raise ApiError("Unable to lock file.")
                 yml.write(yaml.dump(message))
+                cache.set(self._cache_name(name), message)
         except:
             raise
         

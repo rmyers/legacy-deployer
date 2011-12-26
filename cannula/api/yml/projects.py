@@ -23,18 +23,6 @@ class ProjectAPI(BaseAPI):
     userdel_cmd = '/usr/sbin/userdel -r %(name)s'
     userget_cmd = '/bin/grep ^%(name)s: /etc/passwd'
     git_init_cmd = '%(git_cmd)s init --bare %(repo)s'
-
-    
-    def _get(self, projectname):
-        if isinstance(projectname, self.model):
-            return projectname
-        try:
-            return self.model.objects.get(name=projectname)
-        except self.model.DoesNotExist:
-            raise UnitDoesNotExist("Project does not exist") 
-    
-    def get(self, projectname):
-        return self._get(projectname)
     
     def _list(self, user=None, group=None):
         # TODO: handle user arg?
@@ -42,15 +30,7 @@ class ProjectAPI(BaseAPI):
             return group.project_set.all()
         return self.model.objects.all()
     
-    
-    def _create(self, group, name, description):
-        project, created = self.model.objects.get_or_create(group=group, name=name, 
-            defaults={'description':description})
-        if not created:
-            raise DuplicateObject("Project already exists!")
-        return project
-    
-    def create(self, user, group, name, description=''):
+    def create(self, name, user, group, description=''):
         """
         Create a project and return its project object.
 
@@ -60,9 +40,9 @@ class ProjectAPI(BaseAPI):
 
         Required Arguments:
 
+         * name: (String) Name of project to create.
          * user: (String) User attempting the create function.
          * group: (String) Name of project group to put project under.
-         * name: (String) Name of project to create.
 
         Optional Arguments:
 
@@ -82,11 +62,10 @@ class ProjectAPI(BaseAPI):
         if not user.has_perm('add', group):
             raise PermissionError("You can not create projects in this group")
 
-        # Create the Project object.
-        project = self._create(group=group,name=name,description=description)
-        log.info("Project %s created in %s" % (project, group))
-        api.log.create("Project %s created" % project, user=user, group=group, project=project)
-        return project
+        super(self, ProjectAPI).create(name, group=group, description=description)
+    
+    def post_create(self, project, name, **kwargs):
+        log.info("Project %s created in %s" % (project, kwargs.get('group')))
     
     
     def initialize(self, name, user):
@@ -137,4 +116,3 @@ class ProjectAPI(BaseAPI):
         write_file(project.git_description, 'git/description.txt', ctx)
         
         log.info("Project %s initialized", project)
-        api.log.create("Project %s initialized" % project, user=user, group=project.group, project=project)

@@ -9,45 +9,22 @@ log = getLogger('api')
 
 class GroupAPI(BasePBAPI):
     
-    model = messages.GroupMembership
+    model = messages.Group
     base_dir = 'groups'
-    
-    def _create(self, name, user, description, **kwargs):
-        if not user.has_perm('add_projectgroup'):
-            raise PermissionError("You are not allowed to add Groups!")
-        group, created = self.model.objects.get_or_create(name=name, 
-            defaults={'description':description})
-        if not created:
-            raise DuplicateObject('Group already exists!')
-        return group
-    
-    
-    def _list(self, user=None, perm=None, **kwargs):
-        if user:
-            user = api.users.get(user)
-            groups = user.projectgroup_set.all()
-            if perm is not None:
-                if not perm in ['add', 'modify', 'delete']:
-                    raise ApiError("Permission must be one of 'add', 'modify', or 'delete'")
-                kwargs = {
-                    'groupmembership__%s' % perm: True
-                }
-                groups = groups.filter(**kwargs)
-        else:
-            groups = self.model.objects.all()
-        return groups.order_by('name').distinct()
-    
-    
-    def create(self, name, user, description='', **kwargs):
+      
+    def create(self, name, user, description=''):
         user = api.users.get(user)
-        # create group
-        group = self._create(name, user, description, **kwargs)
+        if not user.is_admin:
+            raise PermissionError("You are not allowed to add Groups!")
+        
+        super(self, GroupAPI).create(name, user=user, description=description)
+    
+    def post_create(self, group, name, **kwargs):
+        user = kwargs.get('user')
         api.permissions.grant_admin(user, group)
         msg = 'Creating new group: %s' % name
         log.info(msg)
-        api.log.create(message=msg, user=user, group=group)
-        return group
-    
+        
     
     def list(self, user=None):
         """
