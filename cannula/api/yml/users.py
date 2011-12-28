@@ -1,7 +1,5 @@
 from logging import getLogger
 
-from cannula.api import DuplicateObject
-from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
 from cannula.api import BaseYamlAPI, messages
 from cannula.conf import api

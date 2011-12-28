@@ -17,7 +17,7 @@ class GroupAPI(BaseYamlAPI):
         if not user.is_admin:
             raise PermissionError("You are not allowed to add Groups!")
         
-        super(GroupAPI, self).create(name, user=user, description=description)
+        return super(GroupAPI, self).create(name, user=user, description=description)
     
     def post_create(self, group, name, **kwargs):
         user = kwargs.get('user')

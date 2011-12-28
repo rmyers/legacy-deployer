@@ -61,7 +61,7 @@ class ProjectAPI(BaseYamlAPI):
         if not user.has_perm('add', group):
             raise PermissionError("You can not create projects in this group")
 
-        super(ProjectAPI, self).create(name, group=group, description=description)
+        return super(ProjectAPI, self).create(name, group=group, description=description)
     
     def post_create(self, project, name, **kwargs):
         log.info("Project %s created in %s" % (project, kwargs.get('group')))
@@ -103,7 +103,7 @@ class ProjectAPI(BaseYamlAPI):
             'project': project,
             'cannula_admin': CANNULA_CMD,
             # The current setting file
-            'settings': os.environ['DJANGO_SETTINGS_MODULE'],
+            'settings': os.environ['CANNULA_SETTINGS_MODULE'],
             # The current python executable (could be in a virtualenv)
             'python': sys.executable}
         # Update git config in new repo

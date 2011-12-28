@@ -2,6 +2,9 @@
 import datetime
 import urllib
 import hashlib
+import os
+
+from cannula import conf
 
 class User(object):
     
@@ -90,6 +93,77 @@ class Project(object):
         else:
             raise AttributeError('Group required')
         self.description = description
+    
+    def __unicode__(self):
+        return self.name
+    
+    def get_absolute_url(self):
+        return '/%s/%s/' % (self.group, self.name)
+    
+    #
+    # Project Read-only Settings
+    # 
+    
+    @property
+    def repo_dir(self):
+        """Remote repo directory, this is where projects are pushed to."""
+        directory = '%s/%s.git' % (self.group, self.name)
+        return os.path.join(conf.CANNULA_BASE, directory)
+    
+    @property
+    def project_dir(self):
+        """Actual working directory of the project code. Code is checked
+        out here after a push.
+        """
+        directory = '%s/%s' % (self.group, self.name)
+        return os.path.join(conf.CANNULA_BASE, directory)
+    
+    @property
+    def conf_dir(self):
+        """Project configuration directory."""
+        return os.path.join(conf.CANNULA_BASE, 'config', self.name)
+        
+    @property
+    def appconfig(self):
+        """This is the file that controls all the project handlers."""
+        return os.path.join(self.project_dir, 'app.yaml')
+    
+    @property
+    def deployconfig(self):
+        """Copy of the app.yaml file in the project config directory."""
+        return os.path.join(self.conf_dir, 'app.yaml')
+    
+    @property
+    def supervior_conf(self):
+        """Configuration file for controling processes."""
+        return os.path.join(self.conf_dir, 'supervisor.conf')
+    
+    @property
+    def bin_dir(self):
+        """Holds startup files for processes."""
+        return os.path.join(self.conf_dir, 'bin')
+    
+    @property
+    def vhost_conf(self):
+        """Configuration file for proxy vhosts."""
+        return os.path.join(self.conf_dir, 'vhost.conf')
+    
+    @property
+    def unix_id(self):
+        """Used for system username."""
+        return u'%s.%s' % (self.group.name, self.name)
+    
+    @property
+    def git_config(self):
+        return os.path.join(self.repo_dir, 'config')
+    
+    @property
+    def git_description(self):
+        return os.path.join(self.repo_dir, 'description')
+    
+    @property
+    def post_receive(self):
+        return os.path.join(self.repo_dir, 'hooks', 'post-receive')
 #    
 #    name = messages.StringField(1, required=True)
 #    group = messages.StringField(2, requied=True)

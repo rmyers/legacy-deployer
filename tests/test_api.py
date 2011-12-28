@@ -1,5 +1,5 @@
 from base import CannulaTestCase
-
+import os
 
 class TestAPI(CannulaTestCase):
     
@@ -9,6 +9,11 @@ class TestAPI(CannulaTestCase):
         g1 = self.api.groups.create('testy', 'abby')
         p1 = self.api.projects.create('test', user='abby', group='testy')
         self.assertRaises(PermissionError, self.api.projects.create, 'test2', user='jim', group='testy')
+        
+        self.assertEqual(p1.get_absolute_url(), '/testy/test/')
+        self.api.projects.initialize('test', user='abby')
+        self.assertTrue(os.path.isdir(p1.repo_dir))
+        self.assertTrue(os.path.isdir(p1.project_dir))
         
     def test_groups(self):
         from cannula.api import PermissionError
