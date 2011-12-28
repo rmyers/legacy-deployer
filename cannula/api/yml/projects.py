@@ -3,20 +3,19 @@ import sys
 
 from logging import getLogger
 
-from django.db.models.loading import get_model
-
 from cannula.api import DuplicateObject
 from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
-from cannula.api import BaseAPI
+from cannula.api import BaseYamlAPI, messages
 from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_CMD
 from cannula.utils import write_file
 
 log = getLogger('api')
 
-class ProjectAPI(BaseAPI):
+class ProjectAPI(BaseYamlAPI):
     
-    model = get_model('cannula', 'project')
+    model = messages.Project
+    base_dir = 'projects'
     
     # TODO: wire up using different users
     useradd_cmd = '/usr/sbin/useradd %(options)s %(name)s'
@@ -62,7 +61,7 @@ class ProjectAPI(BaseAPI):
         if not user.has_perm('add', group):
             raise PermissionError("You can not create projects in this group")
 
-        super(self, ProjectAPI).create(name, group=group, description=description)
+        super(ProjectAPI, self).create(name, group=group, description=description)
     
     def post_create(self, project, name, **kwargs):
         log.info("Project %s created in %s" % (project, kwargs.get('group')))

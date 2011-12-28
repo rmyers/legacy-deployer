@@ -1,13 +1,13 @@
 from logging import getLogger
 
-from cannula.api import DuplicateObject, BasePBAPI, PermissionError, messages
+from cannula.api import BaseYamlAPI, PermissionError, messages
 from cannula.conf import api
 from cannula.api.exceptions import ApiError
 import os
 
 log = getLogger('api')
 
-class GroupAPI(BasePBAPI):
+class GroupAPI(BaseYamlAPI):
     
     model = messages.Group
     base_dir = 'groups'
@@ -17,7 +17,7 @@ class GroupAPI(BasePBAPI):
         if not user.is_admin:
             raise PermissionError("You are not allowed to add Groups!")
         
-        super(self, GroupAPI).create(name, user=user, description=description)
+        super(GroupAPI, self).create(name, user=user, description=description)
     
     def post_create(self, group, name, **kwargs):
         user = kwargs.get('user')

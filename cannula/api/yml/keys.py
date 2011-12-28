@@ -2,14 +2,13 @@ import os
 from logging import getLogger
 from shutil import copy2
 
-from cannula.api import BasePBAPI, messages
+from cannula.api import BaseYamlAPI, messages
 from cannula.conf import api, CANNULA_CMD
 from cannula.api.exceptions import ApiError
-from django.template.loader import render_to_string
 
 log = getLogger('api.keys')
 
-class KeyAPI(BasePBAPI):
+class KeyAPI(BaseYamlAPI):
     
     model = messages.Key
     base_dir = 'keys'

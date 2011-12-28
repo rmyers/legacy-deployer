@@ -6,7 +6,7 @@ from werkzeug.contrib.cache import SimpleCache
 cache = SimpleCache()
 
 app = Flask(__name__)
-app.config.from_object(__name__)
+#app.config.from_object(__name__)
 
 from flask.views import MethodView
 

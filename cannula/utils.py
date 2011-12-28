@@ -10,6 +10,9 @@ import re
 from logging import getLogger
 from subprocess import Popen, PIPE
 
+from jinja2 import Environment, PackageLoader
+env = Environment(loader=PackageLoader('cannula', 'templates'))
+
 try:
     from importlib import import_module
 except ImportError:  # Compatibility for Python <= 2.6
@@ -106,6 +109,10 @@ def add_blank_choice(choices, force=False):
     if force or len(choices) > 1:
         choices = [("", "---------")] + choices
     return choices
+
+def render_to_string(template, context):
+    temp = env.get_template(template)
+    return temp.render(**context)
 
 def write_file(file_name, template, context=None):
     if context is None:

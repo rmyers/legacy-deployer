@@ -1,17 +1,32 @@
 
 import os
+import logging
 
 from cannula.utils import import_object
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 
+class settings(object):
+    """Just a dumb placeholder for no defaults."""
+    
 # Check for if Django settings module is defined.
 if os.environ.get('DJANGO_SETTINGS_MODULE'):
     from django.conf import settings
+elif os.environ.get('CANNULA_SETTINGS_MODULE'):
+    logging.info('Settings setup')
+    mod = os.environ['CANNULA_SETTINGS_MODULE']
+    if mod.endswith('.ini'):
+        import ConfigParser
+        config = ConfigParser.ConfigParser()
+        config.read([mod])
+        for k, v in config.items('cannula'):
+            logging.info("Setting: %s: %s", k, v)
+            setattr(settings, k.upper(), v)
+    else:
+        settings = import_object(mod)
 else:
-    # TODO: Allow basic ini file settings
-    class settings(object):
-        """Just a dumb placeholder for no defaults."""
+    logging.info("No custom settings found")
+    
 #
 # CANNULA DEFAULT SETTINGS
 #
@@ -85,7 +100,7 @@ class API:
     #log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
     permissions = LazyAPI(CANNULA_API['permissions'])
-    #projects = LazyAPI(CANNULA_API['projects'])
+    projects = LazyAPI(CANNULA_API['projects'])
     #servers = LazyAPI(CANNULA_API['servers'])
     users = LazyAPI(CANNULA_API['users'])
     #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
@@ -110,3 +125,4 @@ CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_tim
 
 _cache = import_object(CANNULA_CACHE)
 cache = _cache(**CANNULA_CACHE_OPTIONS)
+

@@ -5,13 +5,10 @@ import posixpath
 
 from supervisor.xmlrpc import SupervisorTransport
 
-from django.template.loader import render_to_string
-from django.template.base import TemplateDoesNotExist
-
 from cannula.conf import (CANNULA_BASE, CANNULA_SUPERVISOR_INET_PORT, 
     CANNULA_SUPERVISOR_USE_INET, CANNULA_SUPERVISOR_USER,
     CANNULA_SUPERVISOR_PASSWORD)
-from cannula.utils import shell
+from cannula.utils import shell, render_to_string
 
 log = logging.getLogger("cannula.supervisor")
 
@@ -86,10 +83,8 @@ class Supervisord(object):
         if '/' not in template:
             # template is not a full path, generate it now.
             template = posixpath.join(self.template_base, template)
-        try:
-            content = render_to_string(template, context)
-        except TemplateDoesNotExist:
-            return ''
+        
+        content = render_to_string(template, context)
         
         return content
      

@@ -21,11 +21,8 @@ templates. The templates are arranged like this::
 import os
 import posixpath
 
-from django.template import TemplateDoesNotExist
-from django.template.loader import render_to_string
-
 from cannula.conf import CANNULA_SUPERVISOR, CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO
-from cannula.utils import shell, Git, import_object
+from cannula.utils import shell, Git, import_object, render_to_string
 
 # Stop circular imports!
 supervisor = import_object(CANNULA_SUPERVISOR)

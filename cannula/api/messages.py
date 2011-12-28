@@ -11,6 +11,7 @@ class User(object):
         self.email = email or '%s@localhost.com' % name
         self.first_name = first_name
         self.last_name = last_name
+        self.is_admin = is_admin
         # if we don't have a created date set it now and 
         # encrypt the password if any.
         if created is None:
@@ -62,6 +63,10 @@ class User(object):
         gravatar_url += urllib.urlencode({'d':default_url, 's':str(size)})
 
         return gravatar_url
+    
+    def has_perm(self, perm, obj):
+        from cannula.conf import api
+        return api.permissions.has_perm(self, perm, obj=obj)
 
 class Group(object):
     
@@ -99,7 +104,17 @@ class Project(object):
 #    created = messages.IntegerField(4)
 #    members = messages.MessageField(User, 5, repeated=True)
 #
-#class GroupMembership(messages.Message):
+
+class GroupMembership(object):
+    
+    def __init__(self, name, add=False, modify=False, delete=False):
+        self.name = name
+        self.group, self.user = name.split(':')
+        self.add = add
+        self.modify = modify
+        self.delete = delete
+        
+        
 #    
 #    # group:username
 #    name = messages.StringField(1, required=True)
@@ -109,7 +124,12 @@ class Project(object):
 #    modify = messages.BooleanField(5, default=False)
 #    delete = messages.BooleanField(6, default=False)
 #
-#class Deployment(messages.Message):
+
+class Deployment(object):
+
+    def __init__(self, name, **kwargs):
+        self.name = name
+        
 #    
 #    project = messages.StringField(1, required=True)
 #    username = messages.StringField(2, required=True)

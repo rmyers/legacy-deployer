@@ -8,7 +8,7 @@ import re
 
 from logging import getLogger
 
-from cannula.api import BasePBAPI, ApiError, messages
+from cannula.api import BaseYamlAPI, ApiError, messages
 from cannula.conf import api, proxy, supervisor, CANNULA_GIT_CMD, CANNULA_BASE
 from cannula.utils import write_file, shell, import_object, Git
 
@@ -24,7 +24,7 @@ class Handler(object):
     def __getattr__(self, attr):
         return getattr(self._worker_obj, attr)
     
-class DeployAPI(BasePBAPI):
+class DeployAPI(BaseYamlAPI):
     
     model = messages.Deployment
     

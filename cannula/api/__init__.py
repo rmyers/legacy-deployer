@@ -57,9 +57,21 @@ class BaseYamlAPI(object):
             os.makedirs(self.yaml_dir)
             shell(Git.init, cwd=self.yaml_dir)
     
+    def list_all(self, fetch=False):
+        """Return a list of names of all objects of this type"""
+        if not os.path.isdir(self.yaml_dir):
+            return []
+        names = [n.replace('.yml', '') for n in os.listdir(self.yaml_dir)]
+        if fetch:
+            return [self.get(n) for n in names]
+        return names
+    
     def get(self, name):
         if not os.path.isdir(self.yaml_dir):
             os.makedirs(self.yaml_dir)
+        
+        if isinstance(name, self.model):
+            return name
         
         msg = cache.get(self._cache_name(name))
         if msg is None:  
@@ -84,12 +96,15 @@ class BaseYamlAPI(object):
         pass
     
     def create(self, name, **kwargs):
-        
-        try:
-            self.get(name)
-            raise DuplicateObject()
-        except UnitDoesNotExist:
-            pass
+        if not os.path.isdir(self.yaml_dir):
+            os.makedirs(self.yaml_dir)
+            
+        if not kwargs.pop('force', False):
+            try:
+                obj = self.get(name)
+                raise DuplicateObject()
+            except UnitDoesNotExist:
+                pass
         
         # Get a write lock on the file
         yml = None

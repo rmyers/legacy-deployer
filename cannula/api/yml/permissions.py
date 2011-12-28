@@ -1,17 +1,36 @@
+import os
+
 from logging import getLogger
 
-from django.db.models.loading import get_model
-
-from cannula.api import ApiError, BasePBAPI, PermissionError, messages
+from cannula.api import ApiError, BaseYamlAPI, PermissionError, messages
 from cannula.conf import api
+from cannula.api.exceptions import UnitDoesNotExist
 
 
 log = getLogger('api')
 
-class PermissionAPI(BasePBAPI):
+class PermissionAPI(BaseYamlAPI):
     
     model = messages.GroupMembership
     base_dir = "permissions"
+    
+    def obj_name(self, group, user):
+        group = api.groups.get(group)
+        user = api.users.get(user)
+        return '%s:%s' % (group.name, user.name)
+    
+    def list_members(self, group):
+        group = api.groups.get(group)
+        
+        members = []
+        
+        for m in self.list_all():
+            g, u = m.split(':')
+            if g == group.name:
+                members.append(u)
+        
+        return members
+                
     
     def has_perm(self, user, perm, group=None, project=None, obj=None):
         if not perm in ['add', 'modify', 'delete']:
@@ -20,6 +39,9 @@ class PermissionAPI(BasePBAPI):
 
         user = api.users.get(user)
         
+        if user.is_admin:
+            return True
+        
         if group:
             group = api.groups.get(group)
         elif project:
@@ -27,21 +49,22 @@ class PermissionAPI(BasePBAPI):
             group = project.group
         else:
             # Else check for project/group permissions
-            if isinstance(obj, self.project):
+            if isinstance(obj, messages.Project):
                 group = obj.group
-            elif isinstance(obj, self.group):
-                group = object
+            elif isinstance(obj, messages.Group):
+                group = obj
             else:
                 # We do not handle anything else
                 return False
         
         # Else check the group membership
-        kwargs = {
-            'user': user,
-            'group': group,
-            perm: True,
-        }
-        return self.model.objects.filter(**kwargs).count()
+        try:
+            gm = self.get(self.obj_name(group, user))
+            if gm is None:
+                return False
+            return getattr(gm, perm)
+        except UnitDoesNotExist:
+            return False
     
     
     def grant_admin(self, user, group):
@@ -55,58 +78,16 @@ class PermissionAPI(BasePBAPI):
         """
         user = api.users.get(user)
         group = api.groups.get(group)
-        if self.model.objects.filter(group=group).count():
+        if self.list_members(group):
             raise ApiError("Grant admin only allowed on new group instances.")
         log.info("Granting admin permissions to %s on %s", user, group)
-        self._grant(user, ['add', 'modify', 'delete'], group)
-
-    def _grant(self, user, perms, group):
-        perm_model, _ = self.model.objects.get_or_create(user=user, group=group)
-        [setattr(perm_model, p, True) for p in perms]
-        perm_model.save()
+        self.create(self.obj_name(group, user), perms=['add', 'modify', 'delete'], force=True)
     
-    def grant(self, user, perms, group, req_user):
-        """
-        Grant permissions to user. If project is specified, grant 
-        permissions only to that project, otherwise by default it 
-        will grant permissions for the group.
-        """
-        user = api.users.get(user)
-        req_user = api.users.get(req_user)
-        group = api.groups.get(group)
-        if not self.has_perm(user, 'modify', group=group):
-            raise PermissionError("You don't have permission to modify this group!")
-        perms = set([self.get(perm) for perm in perms])
-        return self._grant(user, perms, group)
-
-    def _revoke(self, user, group, req_user, perm):
-        if not req_user.has_perm('can_modify', group):
-            raise PermissionError("Insufficient permissions.")
-        
-        if perm is None:
-            # Revoke all perms (delete group membership)
-            # TODO: do it!
-            return True
-        
-        # TODO: remove single permission
-        return True 
-    
-    def revoke(self, user, group, req_user, perm=None):
-        """Revoke one or all perms for a user in a group.
-        
-        * user: user whose permissions are to be modified
-        * group: name of group.
-        * req_user: user that has group 'modify' perm.
-        * perm (optional): perm to revoke
-        """
-        user = api.users.get(user)
-        req_user = api.users.get(req_user)
-        group = api.groups.get(group)
-        if perm is not None:
-            perm = self.get(perm)
-        return self._revoke(user, group, req_user, perm)
-    
+    def create_message(self, name, **kwargs):
+        obj = self.model(name)
+        for perm in kwargs.get('perms', []):
+            setattr(obj, perm, True)
     
     def is_admin(self, username):
         user = api.users.get(username)
-        return user.is_superuser()
+        return user.is_admin()
