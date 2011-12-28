@@ -7,7 +7,7 @@ class TestAPI(CannulaTestCase):
     def test_projects(self):
         from cannula.api import PermissionError
         g1 = self.api.groups.create('testy', 'abby')
-        p1 = self.api.projects.create('test', user='abby', group='testy')
+        p1 = self.api.projects.create('test', user='abby', group=g1)
         self.assertRaises(PermissionError, self.api.projects.create, 'test2', user='jim', group='testy')
         
         self.assertEqual(p1.get_absolute_url(), '/testy/test/')
