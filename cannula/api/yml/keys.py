@@ -5,6 +5,7 @@ from shutil import copy2
 from cannula.api import BaseYamlAPI, messages
 from cannula.conf import api, CANNULA_CMD
 from cannula.api.exceptions import ApiError
+from cannula.utils import render_to_string
 
 log = getLogger('api.keys')
 
@@ -13,43 +14,24 @@ class KeyAPI(BaseYamlAPI):
     model = messages.Key
     base_dir = 'keys'
     
-    def create_or_update(self, user, name, ssh_key):
-        key, created = self.model.objects.get_or_create(user=user,
-            name=name, defaults={'ssh_key':ssh_key})
-        if not created:
-            log.info("Updating key: %s for user: %s", name, user)
-            key.ssh_key = ssh_key
-        else:
-            log.info("Created key: %s for user: %s", name, user)
-        return key
-    
-    
-    def _list(self, user=None):
-        if user:
-            user = api.users.get(user)
-            keys = self.model.objects.filter(user=user)
-        else:
-            keys = self.model.objects.all()
-        return keys.order_by('name').distinct()
-    
-    def create(self, user, name, ssh_key):
+    def obj_name(self, user, keyname):
         user = api.users.get(user)
-        # create group
-        return self.create_or_update(user, name, ssh_key)
+        keyname = keyname.replace(' ', '_')
+        return '%s:%s' % (user.name, keyname)
     
-    def list(self, user=None):
-        """
-        Return a list of all keys.
-
-        If user is given, then filter the list of keys to only those that
-        the user owns.
-        """
-        return self._list(user=user)
+    def create(self, user, keyname, ssh_key):
+        name = self.obj_name(user, keyname)
+        return super(KeyAPI, self).create(name, ssh_key=ssh_key)
+    
+    def mine(self, user):
+        user = api.users.get(user)
+        keys = [self.get(n) for n in self.list_all() if n.startswith('%s:' % user.name)]
+        return [self.get(k) for k in keys]
     
     def authorized_keys(self):
         """Returns a formated authorized_key file for all keys."""
         ctx = {
-            'keys': self.list(),
+            'keys': self.list_all(fetch=True),
             'cannula_cmd': CANNULA_CMD,
         }
         return render_to_string('cannula/authorized_keys.txt', ctx)

@@ -46,7 +46,7 @@ class PermissionAPI(BaseYamlAPI):
             group = api.groups.get(group)
         elif project:
             project = api.projects.get(project)
-            group = project.group
+            group = api.groups.get(project.group)
         else:
             # Else check for project/group permissions
             if isinstance(obj, messages.Project):

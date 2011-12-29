@@ -146,3 +146,4 @@ class Git:
     head = "%s log -1 --pretty=oneline |awk '{print $1}'" % CANNULA_GIT_CMD
     commit = '%s commit -m "%%s"' % CANNULA_GIT_CMD
     diff = '%s diff' % CANNULA_GIT_CMD
+    push = '%s push %%s' % CANNULA_GIT_CMD

@@ -61,7 +61,7 @@ CANNULA_CMD = getattr(settings, 'CANNULA_CMD', _cannula_cmd)
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
     #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
-    'deploy': 'cannula.api.yml.DeployAPI',
+    'deploy': 'cannula.api.yml.deploy.DeployAPI',
     'groups': 'cannula.api.yml.groups.GroupAPI',
     'keys': 'cannula.api.yml.keys.KeyAPI',
     #'log': 'cannula.api.yml.log.LoggingAPI',

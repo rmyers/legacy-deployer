@@ -42,3 +42,11 @@ class GroupAPI(BaseYamlAPI):
             groups = os.listdir(self.pd_dir)
             return [g.replace('.pb', '') for g in groups]
         
+    def delete(self, name, user):
+        group = self.get(name)
+        user = api.users.get(user)
+        
+        if not user.has_perm('delete', group=group):
+            raise PermissionError("You do not have permission to delete groups")
+        
+        return super(GroupAPI, self).delete(name)

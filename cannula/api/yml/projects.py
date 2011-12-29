@@ -7,6 +7,7 @@ from cannula.api import DuplicateObject
 from cannula.api import UnitDoesNotExist
 from cannula.api import PermissionError
 from cannula.api import BaseYamlAPI, messages
+from cannula.api.messages import Project
 from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_CMD
 from cannula.utils import write_file
 
@@ -14,7 +15,7 @@ log = getLogger('api')
 
 class ProjectAPI(BaseYamlAPI):
     
-    model = messages.Project
+    model = Project
     base_dir = 'projects'
     
     # TODO: wire up using different users
@@ -66,6 +67,14 @@ class ProjectAPI(BaseYamlAPI):
     def post_create(self, project, name, **kwargs):
         log.info("Project %s created in %s" % (project, kwargs.get('group')))
     
+    def delete(self, name, user):
+        project = self.get(name)
+        user = api.users.get(user)
+        
+        if not user.has_perm('delete', group=project.group):
+            raise PermissionError("You do not have permission to delete projects")
+        
+        return super(ProjectAPI, self).delete(name)
     
     def initialize(self, name, user):
         """
@@ -80,7 +89,7 @@ class ProjectAPI(BaseYamlAPI):
         project = self.get(name)
         user = api.users.get(user)
         
-        if not user.has_perm('add', project.group):
+        if not user.has_perm('add', group=project.group):
             raise PermissionError("You can not create projects in this group")
         
         # TODO: Create unix user for project

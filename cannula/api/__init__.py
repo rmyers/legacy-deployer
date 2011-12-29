@@ -101,7 +101,7 @@ class BaseYamlAPI(object):
             
         if not kwargs.pop('force', False):
             try:
-                obj = self.get(name)
+                self.get(name)
                 raise DuplicateObject()
             except UnitDoesNotExist:
                 pass
@@ -116,8 +116,13 @@ class BaseYamlAPI(object):
                     raise ApiError("Unable to lock file.")
                 msg = self.create_message(name, **kwargs)
                 yml.write(yaml.dump(msg))
-        except:
-            raise
+        except Exception, e:
+            # Remove the failed attempt
+            try:
+                os.unlink(self.yaml_name(name))
+            except:
+                pass
+            raise e
         
         # run post create hook
         self.post_create(msg, name, **kwargs)
@@ -137,3 +142,11 @@ class BaseYamlAPI(object):
             raise
         
         return True
+    
+    def delete(self, name, **kwargs):
+        obj = self.get(name)
+        cache.delete(self._cache_name(obj.name))
+        if os.path.isfile(self.yaml_name(obj.name)):
+            os.unlink(self.yaml_name(obj.name))
+            return True
+        return False

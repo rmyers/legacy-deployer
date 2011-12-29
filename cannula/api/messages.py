@@ -3,6 +3,7 @@ import datetime
 import urllib
 import hashlib
 import os
+from base64 import b64decode
 
 from cannula import conf
 
@@ -67,9 +68,9 @@ class User(object):
 
         return gravatar_url
     
-    def has_perm(self, perm, obj):
+    def has_perm(self, perm, group=None, project=None, obj=None):
         from cannula.conf import api
-        return api.permissions.has_perm(self, perm, obj=obj)
+        return api.permissions.has_perm(self, perm, group=group, project=project, obj=obj)
 
 class Group(object):
     
@@ -81,7 +82,10 @@ class Group(object):
     
     def __unicode__(self):
         return self.name
-
+    
+    def get_absolute_url(self):
+        return '/%s/' % (self.name)
+    
 class Project(object):
     
     def __init__(self, name, group=None, description=''):
@@ -164,51 +168,50 @@ class Project(object):
     @property
     def post_receive(self):
         return os.path.join(self.repo_dir, 'hooks', 'post-receive')
-#    
-#    name = messages.StringField(1, required=True)
-#    group = messages.StringField(2, requied=True)
-#    description = messages.StringField(3)
-#    created = messages.IntegerField(4)
-#
-        
-#    
-#    name = messages.StringField(1, required=True)
-#    projects = messages.MessageField(Project, 2, repeated=True)
-#    description = messages.StringField(3)
-#    created = messages.IntegerField(4)
-#    members = messages.MessageField(User, 5, repeated=True)
-#
+
 
 class GroupMembership(object):
     
     def __init__(self, name, add=False, modify=False, delete=False):
+        # group:username
         self.name = name
         self.group, self.user = name.split(':')
         self.add = add
         self.modify = modify
         self.delete = delete
-        
-        
-#    
-#    # group:username
-#    name = messages.StringField(1, required=True)
-#    group_name = messages.StringField(2, required=True)
-#    username = messages.StringField(3, required=True)
-#    add = messages.BooleanField(4, default=False)
-#    modify = messages.BooleanField(5, default=False)
-#    delete = messages.BooleanField(6, default=False)
-#
 
 class Deployment(object):
 
     def __init__(self, name, **kwargs):
         self.name = name
         
-#    
-#    project = messages.StringField(1, required=True)
-#    username = messages.StringField(2, required=True)
-#    old_deploy_rev = messages.StringField(3)
-#    new_deploy_rev = messages.StringField(4)
-#    old_conf_rev = messages.StringField(5)
-#    timestamp = messages.IntegerField(6)
+class Key(object):
     
+    def __init__(self, name, ssh_key='', created=None):
+        self.name = name
+        if created is None:
+            created = datetime.datetime.now()
+            # Check the key 
+            self.valid_key(ssh_key)
+        self.ssh_key = ssh_key
+        
+    
+    def valid_key(self, key):
+        parts = key.split()
+        if not parts[0] in ['ssh-rsa', 'ssh-dsa']:
+            raise ValueError("Keys must be in ssh-rsa or ssh-dsa format")
+        try:
+            decoded = b64decode(parts[1])
+        except:
+            # keys are base64 encoded
+            raise ValueError("Invalid key encoding!")
+        # check the encoded string header matches
+        # length of header string in key stored in 4 byte
+        try:
+            length = ord(decoded[3])
+            # string starts at the 5th byte to length
+            key_type = decoded[4:length+4]
+            if key_type != parts[0]:
+                raise ValueError("Key type and header do not match!")
+        except IndexError:
+            raise ValueError("Key string too short!")
