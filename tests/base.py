@@ -5,6 +5,7 @@ import shutil
 import os
 import tempfile
 import ConfigParser
+import subprocess
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
@@ -33,9 +34,10 @@ class CannulaTestCase(unittest.TestCase):
                 if key.startswith('cannula'):
                     del sys.modules[key]
                     
-            from cannula.conf import api, CANNULA_BASE
+            from cannula.conf import api, CANNULA_BASE, supervisor, proxy
             self.assertEqual(CANNULA_BASE, self.base_dir)
             self.api = api
+            self.proc = supervisor
             
             # create an admin user
             self.api.users.create('abby', password="lkjh", email='abby@cannula.com',
@@ -48,6 +50,11 @@ class CannulaTestCase(unittest.TestCase):
             shell(Git.init, cwd=self.dummy_project)
             shell(Git.add_all, cwd=self.dummy_project)
             shell(Git.commit % 'initial commit', cwd=self.dummy_project)
+            
+            # Write out base supervisor and proxy configs
+            self.proc.write_main_conf(commit=True)
+            proxy.write_main_conf(commit=True)
+            self.proc.startup()
         except:
             logging.exception('Setup Failed')
             shutil.rmtree(self.base_dir)
@@ -55,4 +62,4 @@ class CannulaTestCase(unittest.TestCase):
     
     def tearDown(self):
         shutil.rmtree(self.base_dir)
-        
+        self.proc.shutdown()

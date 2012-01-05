@@ -102,7 +102,7 @@ class Proxy(object):
             template = posixpath.join(self.template_base, template)
         try:
             content = render_to_string(template, context)
-        except TemplateDoesNotExist:
+        except:
             return ''
 
         return content

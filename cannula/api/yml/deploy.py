@@ -17,9 +17,9 @@ log = getLogger('api')
 class Handler(object):
     """Simple object to hold properties for wsgi handlers"""
     
-    def __init__(self, name, worker='', **kwargs):
+    def __init__(self, name, project, worker='', **kwargs):
         self._worker_klass = import_object(worker)
-        self._worker_obj = self._worker_klass(name, **kwargs)
+        self._worker_obj = self._worker_klass(name, project, **kwargs)
     
     def __getattr__(self, attr):
         return getattr(self._worker_obj, attr)
@@ -45,6 +45,10 @@ class DeployAPI(BaseYamlAPI):
         if not os.path.isfile(project.appconfig):
             raise ApiError("Project missing app.yaml file!")
         
+        if not os.path.isdir(project.conf_dir):
+            os.makedirs(project.conf_dir)
+            shell(Git.init, cwd=project.conf_dir)
+        
         with open(project.appconfig) as f:
             # Attempt to get an exclusive lock on this file
             try:
@@ -52,10 +56,10 @@ class DeployAPI(BaseYamlAPI):
             except IOError:
                 raise ApiError("Another person is deploying?")
             
-            # Copy the project to the conf_root and add any new files
+            # Copy the project to the conf_dir and add any new files
             shutil.copy(project.appconfig, project.deployconfig)
-            shell(self.git_add_cmd, cwd=project.conf_root)
-            _, changed = shell(self.git_status, cwd=project.conf_root)
+            shell(self.git_add_cmd, cwd=project.conf_dir)
+            _, changed = shell(self.git_status, cwd=project.conf_dir)
             
             if changed:
                 # we have changes in app.yaml lets reset everything
@@ -68,9 +72,9 @@ class DeployAPI(BaseYamlAPI):
                     if handler.get('worker'):
                         # Setup worker
                         name = '%s_%d' % (project.name, handler_position)
-                        handle = Handler(name, **handler)
+                        handle = Handler(name, project, **handler)
                         # write out start up scripts
-                        handle.write_startup_script(project)
+                        handle.write_startup_script()
                         # add handler to vhost_sections
                         sections.append(handle)
                         handler_position += 1
@@ -81,32 +85,32 @@ class DeployAPI(BaseYamlAPI):
                 # Write out the proxy file to serve this app
                 ctx = {
                     'sections': sections,
-                    'domain': config.get('domain', project.default_domain),
+                    'domain': config.get('domain', 'localhost'),
                     'runtime': config.get('runtime', 'python'),
                     'port': config.get('port', 80),
-                    'project_conf_dir': project.conf_root,
+                    'project_conf_dir': project.conf_dir,
                     'conf_dir': os.path.join(CANNULA_BASE, 'config'),
                 }
                 write_file(project.vhost_conf, proxy.template, ctx)
                 write_file(project.supervisor_conf, supervisor.template, ctx)
                 
                 # Check if any files changed and check if still valid
-                shell(self.git_add_cmd, cwd=project.conf_root)
-                _, changed = shell(self.git_status, cwd=project.conf_root)
+                shell(self.git_add_cmd, cwd=project.conf_dir)
+                _, changed = shell(self.git_status, cwd=project.conf_dir)
                 logging.debug(changed)
                 if re.search('^vhost/', changed):
                     try:
                         proxy.reload()
                     except:
                         logging.exception("Error restarting proxy")
-                        shell(self.git_reset, cwd=project.conf_root)
+                        shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
                 if re.search('^supervisor/', changed):
                     try:
                         supervisor.reread()
                     except:
                         logging.exception("Error reading supervisor configs")
-                        shell(self.git_reset, cwd=project.conf_root)
+                        shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
             
             # Restart the project
@@ -114,16 +118,16 @@ class DeployAPI(BaseYamlAPI):
                 supervisor.restart(project)
             except:
                 logging.exception("Error restarting project")
-                shell(self.git_reset, cwd=project.conf_root)
+                shell(self.git_reset, cwd=project.conf_dir)
                 raise ApiError("Deployment failed")
             # Current revision of conf directory
-            _, conf_oldrev = shell(self.git_log, cwd=project.conf_root)
+            _, conf_oldrev = shell(self.git_log, cwd=project.conf_dir)
             if changed:
                 # Commit config changes
-                shell(self.git_commit % user, cwd=project.conf_root)
+                shell(self.git_commit % user, cwd=project.conf_dir)
             
             # new revision of conf directory
-            _, conf_newrev = shell(self.git_log, cwd=project.conf_root)
+            _, conf_newrev = shell(self.git_log, cwd=project.conf_dir)
             self._create(project, user, oldrev, newrev, conf_oldrev, conf_newrev)
             # finally release the lock
             fcntl.flock(f, fcntl.LOCK_UN)    

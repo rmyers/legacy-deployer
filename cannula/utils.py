@@ -5,8 +5,7 @@ cannula Utilities
 Various helper scripts for the cannula framework.
 """
 import sys
-import traceback
-import re
+import posixpath
 from logging import getLogger
 from subprocess import Popen, PIPE
 
