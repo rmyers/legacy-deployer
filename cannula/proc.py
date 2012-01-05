@@ -8,7 +8,7 @@ from supervisor.xmlrpc import SupervisorTransport
 from cannula.conf import (CANNULA_BASE, CANNULA_SUPERVISOR_INET_PORT, 
     CANNULA_SUPERVISOR_USE_INET, CANNULA_SUPERVISOR_USER,
     CANNULA_SUPERVISOR_PASSWORD)
-from cannula.utils import shell, render_to_string, Git
+from cannula.utils import shell, render_to_string, Git, write_file
 
 log = logging.getLogger("cannula.supervisor")
 
@@ -58,22 +58,22 @@ class Supervisord(object):
     def reread(self):
         return self.server.supervisor.reloadConfig()
 
-    def stop(self, project):
-        return self.server.supervisor.stopProcessGroup(project.name)
+    def stop(self, name):
+        return self.server.supervisor.stopProcessGroup(name)
     
-    def start(self, project):
-        return self.server.supervisor.startProcessGroup(project.name)
+    def start(self, name):
+        return self.server.supervisor.startProcessGroup(name)
     
-    def restart(self, project):
-        self.stop(project)
-        self.start(project)
+    def restart(self, name):
+        self.stop(name)
+        self.start(name)
     
-    def add_project(self, project):
+    def add_project(self, name):
         try:
-            self.server.supervisor.addProcessGroup(project.name)
+            self.server.supervisor.addProcessGroup(name)
         except xmlrpclib.Fault, f:
             if f.faultCode == 90:
-                log.warning("%s already added" % project.name)
+                log.warning("%s already added" % name)
             else:
                 raise
     
@@ -184,6 +184,9 @@ class Supervisord(object):
         
         # Default just print the content    
         return content
+    
+    def write_project_conf(self, project, ctx):
+        return write_file(project.supervisor_conf, self.template, ctx)
     
     def write_file(self, context, template):
         """

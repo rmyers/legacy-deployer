@@ -90,22 +90,23 @@ class DeployAPI(BaseYamlAPI):
                     'port': config.get('port', 80),
                     'project_conf_dir': project.conf_dir,
                     'conf_dir': os.path.join(CANNULA_BASE, 'config'),
+                    'project': project,
                 }
-                write_file(project.vhost_conf, proxy.template, ctx)
-                write_file(project.supervisor_conf, supervisor.template, ctx)
+                proxy.write_vhost_conf(project, ctx)
+                supervisor.write_project_conf(project, ctx)
                 
                 # Check if any files changed and check if still valid
                 shell(self.git_add_cmd, cwd=project.conf_dir)
                 _, changed = shell(self.git_status, cwd=project.conf_dir)
                 logging.debug(changed)
-                if re.search('^vhost/', changed):
+                if re.search('vhost.conf', changed):
                     try:
-                        proxy.reload()
+                        proxy.restart()
                     except:
                         logging.exception("Error restarting proxy")
                         shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
-                if re.search('^supervisor/', changed):
+                if re.search('supervisor.conf', changed):
                     try:
                         supervisor.reread()
                     except:

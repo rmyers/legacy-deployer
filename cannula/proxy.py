@@ -22,7 +22,7 @@ import os
 import posixpath
 
 from cannula.conf import CANNULA_SUPERVISOR, CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO
-from cannula.utils import shell, Git, import_object, render_to_string
+from cannula.utils import shell, Git, import_object, render_to_string, write_file
 
 # Stop circular imports!
 supervisor = import_object(CANNULA_SUPERVISOR)
@@ -184,10 +184,11 @@ class Proxy(object):
         # Default just print the content    
         return content
         
-    def write_vhost_conf(self, extra_context={}):
+    def write_vhost_conf(self, project, extra_context={}):
         ctx = self.context.copy()
         ctx.update(extra_context)
-        return self.write_file(ctx, 'vhost.conf')
+        template = posixpath.join(self.template_base, 'vhost.conf')
+        return write_file(project.vhost_conf, template, ctx)
         
 
 class Nginx(Proxy):

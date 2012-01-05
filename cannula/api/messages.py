@@ -138,7 +138,7 @@ class Project(object):
         return os.path.join(self.conf_dir, 'app.yaml')
     
     @property
-    def supervior_conf(self):
+    def supervisor_conf(self):
         """Configuration file for controling processes."""
         return os.path.join(self.conf_dir, 'supervisor.conf')
     
