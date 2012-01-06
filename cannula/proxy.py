@@ -24,8 +24,7 @@ import posixpath
 from cannula.conf import CANNULA_SUPERVISOR, CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO
 from cannula.utils import shell, Git, import_object, render_to_string, write_file
 
-# Stop circular imports!
-supervisor = import_object(CANNULA_SUPERVISOR)
+
 
 class Proxy(object):
     
@@ -52,9 +51,15 @@ class Proxy(object):
             'supervisor_managed': self.supervisor_managed,
         }
     
+    @property
+    def manual_start_cmd(self):
+        return self.start_cmd % self.__dict__
+    
     def start(self):
         """Start the proxy service."""
         if self.supervisor_managed:
+            # Stop circular imports!
+            supervisor = import_object(CANNULA_SUPERVISOR)
             return supervisor.start('proxy-server')
         
         # Else start the proxy manually
@@ -65,6 +70,8 @@ class Proxy(object):
     def stop(self):
         """Stop the proxy service."""
         if self.supervisor_managed:
+            # Stop circular imports!
+            supervisor = import_object(CANNULA_SUPERVISOR)
             return supervisor.stop('proxy-server')
         
         # Else stop the proxy manually
@@ -75,6 +82,8 @@ class Proxy(object):
     def restart(self):
         """Restart the proxy service."""
         if self.supervisor_managed:
+            # Stop circular imports!
+            supervisor = import_object(CANNULA_SUPERVISOR)
             return supervisor.restart('proxy-server')
         
         # Else restart the proxy manually

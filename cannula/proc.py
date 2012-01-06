@@ -7,8 +7,10 @@ from supervisor.xmlrpc import SupervisorTransport
 
 from cannula.conf import (CANNULA_BASE, CANNULA_SUPERVISOR_INET_PORT, 
     CANNULA_SUPERVISOR_USE_INET, CANNULA_SUPERVISOR_USER,
-    CANNULA_SUPERVISOR_PASSWORD)
-from cannula.utils import shell, render_to_string, Git, write_file
+    CANNULA_SUPERVISOR_PASSWORD, CANNULA_SUPERVISOR_MANAGES_PROXY,
+    CANNULA_PROXY)
+from cannula.utils import shell, render_to_string, Git, write_file, import_object
+
 
 log = logging.getLogger("cannula.supervisor")
 
@@ -33,6 +35,8 @@ class Supervisord(object):
         self.password = CANNULA_SUPERVISOR_PASSWORD
         self.use_inet = CANNULA_SUPERVISOR_USE_INET
         self.inet_port = CANNULA_SUPERVISOR_INET_PORT
+        self.manages_proxy = CANNULA_SUPERVISOR_MANAGES_PROXY
+        #self.proxy = import_object(CANNULA_PROXY) if self.manages_proxy else None
         self.serverurl = self.inet_port if self.use_inet else self.socket
         self.context = {
             'cannula_base': self.base,
@@ -43,6 +47,9 @@ class Supervisord(object):
             'http_password': self.password,
             'supervisor_sock': self.socket,
             'socket_path': self.socket_path,
+            'manages_proxy': self.manages_proxy,
+            # Circular imports
+            #'proxy': self.proxy,
         }
         # Setup the connection to the xmlrpc backend
         # xmlrpclib forces you to use an http uri, the SupervisorTransport
@@ -78,10 +85,14 @@ class Supervisord(object):
                 raise
     
     def startup(self):
-        shell('%(cmd)s -c %(main_conf)s -p %(pid_file)s' % self.__dict__)
-    
+        status, output = shell('%(cmd)s -c %(main_conf)s' % self.__dict__)
+        if status > 0:
+            raise Exception(output)
+        
     def shutdown(self):
-        shell('%(ctl_cmd)s -c %(main_conf)s shutdown' % self.__dict__)
+        status, output = shell('%(ctl_cmd)s -c %(main_conf)s shutdown' % self.__dict__)
+        if status > 0:
+            logging.error(output)
     
     def initialize(self, dry_run=False):
         """Create proxy base directory and run git init. Return True if it exists."""
@@ -141,6 +152,8 @@ class Supervisord(object):
         """
         ctx = self.context.copy()
         ctx.update(extra_context)
+        if self.manages_proxy:
+            ctx['proxy'] = import_object(CANNULA_PROXY)
         content = self.render_file(ctx, self.main_conf_template)
         
         outmsg = ''

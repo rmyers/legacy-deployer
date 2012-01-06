@@ -113,10 +113,14 @@ class DeployAPI(BaseYamlAPI):
                         logging.exception("Error reading supervisor configs")
                         shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
-            
+                
+                # Add the project
+                supervisor.add_project(project.name)
+                supervisor.reread()
+                
             # Restart the project
             try:
-                supervisor.restart(project)
+                supervisor.restart(project.name)
             except:
                 logging.exception("Error restarting project")
                 shell(self.git_reset, cwd=project.conf_dir)
@@ -129,6 +133,8 @@ class DeployAPI(BaseYamlAPI):
             
             # new revision of conf directory
             _, conf_newrev = shell(self.git_log, cwd=project.conf_dir)
-            self._create(project, user, oldrev, newrev, conf_oldrev, conf_newrev)
+            logging.info("Old Project commit: %s", conf_oldrev)
+            logging.info("New Project commit: %s", conf_newrev)
+            #self._create(project, user, oldrev, newrev, conf_oldrev, conf_newrev)
             # finally release the lock
             fcntl.flock(f, fcntl.LOCK_UN)    

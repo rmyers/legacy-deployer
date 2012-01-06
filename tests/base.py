@@ -61,5 +61,5 @@ class CannulaTestCase(unittest.TestCase):
             self.fail("Problem setting up testcase")
     
     def tearDown(self):
-        shutil.rmtree(self.base_dir)
         self.proc.shutdown()
+        shutil.rmtree(self.base_dir)
