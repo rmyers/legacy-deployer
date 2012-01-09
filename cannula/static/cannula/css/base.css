@@ -2232,3 +2232,25 @@ a:hover {
       color: #666;
       font-size: 80%;
       padding: 0; }
+
+/****************
+ * Popup Form
+ ****************/
+form.popup {
+  position: absolute;
+  z-index: 99;
+  background: #fff;
+  border: 2px solid #008dbf;
+  padding-top: 18px; }
+  form.popup fieldset, form.popup .actions {
+    margin-bottom: 0; }
+  form.popup.wide {
+    width: 500px; }
+
+/********************
+ * Groups
+ * ******************/
+.group {
+  clear: both; }
+  .group .tools {
+    float: right; }

@@ -128,3 +128,32 @@ a:hover {
         }
     }
 }
+
+/****************
+ * Popup Form
+ ****************/
+
+form.popup {
+  position: absolute;
+  z-index: 99;
+  background: #fff;
+  border: 2px solid $blue;
+  padding-top: 18px;
+  fieldset, .actions {
+    margin-bottom: 0;
+  }
+  &.wide {
+    width: 500px;
+  }
+}
+
+/********************
+ * Groups
+ * ******************/
+
+.group {
+  clear: both;
+  .tools {
+    float: right;
+  }
+}

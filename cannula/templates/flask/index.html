@@ -1,7 +1,172 @@
 {% extends 'flask/base.html' %}
 
-{% block content %}
 
-<h2>Blah</h2>
+{% block extrahead %}
+<script>
+    $(function () {
+        
+        var Group = function(group) {
+            this.name = ko.observable(group.name);
+            this.description = ko.observable(group.description);
+            this.url = '/api/groups/' + this.name();
+            this.formVisible = ko.observable(false);
+            
+            this.toggleForm = function() {
+                this.formVisible(!this.formVisible());
+            };
+            
+            this.deleteGroup = function () {
+                jQuery.ajax({
+                     url: this.url,
+                     type: 'DELETE',
+                     success: $.proxy(function(data) {         
+                         if (this.onDelete){
+                             this.onDelete(this);
+                         }
+                    }, this)
+               });
+            };
+        };
+        
+        var GroupCollection = function () {
+            this.working = ko.observable(false);
+            this.items = ko.observableArray([]);
+            this.url = '/api/groups/'; 
+            this.newName = ko.observable('');
+            this.newDescription = ko.observable('');
+            this.errors = ko.observable();
+            this.formVisible = ko.observable(false);
+            
+            this.resetForm = function() {
+                this.newName('');
+                this.newDescription('');
+                this.formVisible(false);
+                this.errors('');
+            };
+            
+            this.showForm = function() {
+                this.formVisible(true);
+            };
+            
+            this.itemDeleted = function(item) {
+                 this.items.remove(item);
+            };
+            
+            this.extractData = function(data) {
+                if (data.groups) {
+                    var groups = data.groups;
+                    ko.utils.arrayForEach(groups, jQuery.proxy(function(group) {
+                        jQuery.extend(group, new Group(group));
+                        group.onDelete = jQuery.proxy(this.itemDeleted, this);
+                    }, this));
+    
+                    return data.groups;                
+                }
+                return [];
+              
+            };
+            
+            this.fetch = function() {
+                this.working(true);
+                
+                jQuery.ajax({
+                     url: this.url,
+                     type: 'GET',
+                     dataType: 'json',
+                     success: $.proxy(function(data) {         
+                         var newItems = this.extractData(data) || [];
+                         var items = this.items();
+                         $.merge(items, newItems);
+                         this.items(items);
+                    }, this),
+                    complete: $.proxy(function() {
+                        this.working(false);
+                    }, this)
+               });
+            };
+            
+            // Grab the initial groups
+            this.fetch();
+            
+            this.addGroup = function(formElement) {
+                this.working(true);
+
+                jQuery.ajax({
+                     url: this.url,
+                     type: 'POST',
+                     data: {name: this.newName(), description: this.newDescription()}, 
+                     success: $.proxy(function(data) {
+                         if (data.errorMsg) {
+                             this.errors(data.errorMsg);
+                             
+                         } else {
+                             var group = new Group(data);
+                             group.onDelete = jQuery.proxy(this.itemDeleted, this);
+                             this.items.push(group);
+                             this.resetForm();
+                         }
+                     }, this),
+                     error: $.proxy(function(data) {
+                         console.log(data);
+                         this.errors(data);
+                     }, this),
+                     complete: $.proxy(function() {
+                         this.working(false);
+                     }, this)
+                });
+            };
+        };
+        ko.applyBindings(new GroupCollection());
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<button class="btn" data-bind="click: showForm">Add Group</button>
+<form class="popup wide" method="post" data-bind="visible: formVisible, submit: addGroup">
+<fieldset>
+<legend>Create Project Group</legend>
+<div class="alert-message error" data-bind="text: errors, visible: errors"></div>
+<div class="clearfix">
+    <label for="id_name">Name:</label>
+    <div class="input">
+        <input id="id_name" type="text" name="name" maxlength="25" data-bind="value: newName"/>
+    </div>
+</div>
+
+<div class="clearfix">
+    <label for="id_description">Description:</label>
+    <div class="input">
+        <textarea id="id_description" rows="5" cols="40" name="description" data-bind="value: newDescription"></textarea>
+    </div>
+</div>
+
+
+<div class="actions">
+    <input type='submit' class='btn primary' value='Create Project Group' />
+    <a data-bind="click: resetForm">Cancel</a>
+</div>
+</fieldset>
+
+</form>
+
+{% if user %}
+<h2>Your Groups</h2>
+<img src="{{ url_for('static', filename='cannula/img/ajax-loader.gif') }}" data-bind="visible: working"/>
+<div class="groups" data-bind="foreach: items">
+    <div class="group">
+        <h3 data-bind="text: name"></h3>
+        <p data-bind="text: description"></p>
+        <div class="tools">
+            <a class="delete" data-bind="click: toggleForm">Delete Group</a>
+        </div>
+        <p class="alert-message block-message error" data-bind="visible: formVisible">
+            Are you sure you want to delete this group?<br />
+            <button class="btn error" data-bind="click: deleteGroup">Delete Group</button>
+            <button class="btn" data-bind="click: toggleForm">Cancel</button>
+        </p>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}

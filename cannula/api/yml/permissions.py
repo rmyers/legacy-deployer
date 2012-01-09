@@ -31,6 +31,28 @@ class PermissionAPI(BaseYamlAPI):
         
         return members
                 
+    def list_groups(self, user):
+        user = api.users.get(user)
+        groups = []
+        
+        for m in self.list_all():
+            g, u = m.split(':')
+            if u == user.name:
+                groups.append(g)
+        
+        return groups
+    
+    def for_group(self, group):
+        group = api.groups.get(group)
+        
+        perms = []
+        
+        for m in self.list_all():
+            g, _ = m.split(':')
+            if g == group.name:
+                perms.append(m)
+        
+        return perms
     
     def has_perm(self, user, perm, group=None, project=None, obj=None):
         if not perm in ['add', 'modify', 'delete']:
@@ -87,6 +109,7 @@ class PermissionAPI(BaseYamlAPI):
         obj = self.model(name)
         for perm in kwargs.get('perms', []):
             setattr(obj, perm, True)
+        return obj
     
     def is_admin(self, username):
         user = api.users.get(username)

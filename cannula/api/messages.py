@@ -7,7 +7,12 @@ from base64 import b64decode
 
 from cannula import conf
 
-class User(object):
+class Message(object):
+    
+    def to_dict(self):
+        return self.__dict__()
+
+class User(Message):
     
     def __init__(self, name, email=None, first_name=None,
         last_name=None, password='!', is_admin=False, created=None):
@@ -72,7 +77,7 @@ class User(object):
         from cannula.conf import api
         return api.permissions.has_perm(self, perm, group=group, project=project, obj=obj)
 
-class Group(object):
+class Group(Message):
     
     def __init__(self, name, user=None, description='', created=None):
         self.name = name
@@ -86,7 +91,10 @@ class Group(object):
     def get_absolute_url(self):
         return '/%s/' % (self.name)
     
-class Project(object):
+    def to_dict(self):
+        return {'name': self.name, 'description': self.description}
+    
+class Project(Message):
     
     def __init__(self, name, group=None, description=''):
         self.name = name
@@ -170,7 +178,7 @@ class Project(object):
         return os.path.join(self.repo_dir, 'hooks', 'post-receive')
 
 
-class GroupMembership(object):
+class GroupMembership(Message):
     
     def __init__(self, name, add=False, modify=False, delete=False):
         # group:username
@@ -180,12 +188,12 @@ class GroupMembership(object):
         self.modify = modify
         self.delete = delete
 
-class Deployment(object):
+class Deployment(Message):
 
     def __init__(self, name, **kwargs):
         self.name = name
         
-class Key(object):
+class Key(Message):
     
     def __init__(self, name, ssh_key='', created=None):
         self.name = name

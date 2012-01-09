@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import shutil
 import logging
@@ -14,6 +15,17 @@ from cannula.conf import CANNULA_BASE, cache
 from cannula.utils import Git, shell
 
 class BaseAPI(object):
+    
+    UNWANTED_CHARS = re.compile('[^a-z0-9:_-]')
+    
+    def clean_name(self, name):
+        """Replace any unwanted chars with '_' and lowercase name."""
+        if not isinstance(name, basestring):
+            raise ApiError('Name must be a string')
+        
+        return self.UNWANTED_CHARS.sub('_', name.lower())
+    
+class BaseDBAPI(BaseAPI):
     
     model = None
     lookup_field = 'name'
@@ -34,7 +46,7 @@ class BaseAPI(object):
     def _send(self, *args, **kwargs):
         """Send a command to the remote cannula server."""
 
-class BaseYamlAPI(object):
+class BaseYamlAPI(BaseAPI):
     
     model = None
     base_dir = ''
@@ -61,7 +73,7 @@ class BaseYamlAPI(object):
         """Return a list of names of all objects of this type"""
         if not os.path.isdir(self.yaml_dir):
             return []
-        names = [n.replace('.yml', '') for n in os.listdir(self.yaml_dir)]
+        names = [n.replace('.yaml', '') for n in os.listdir(self.yaml_dir)]
         if fetch:
             return [self.get(n) for n in names]
         return names
@@ -72,6 +84,8 @@ class BaseYamlAPI(object):
         
         if isinstance(name, self.model):
             return name
+        
+        name = self.clean_name(name)
         
         msg = cache.get(self._cache_name(name))
         if msg is None:  
@@ -98,6 +112,8 @@ class BaseYamlAPI(object):
     def create(self, name, **kwargs):
         if not os.path.isdir(self.yaml_dir):
             os.makedirs(self.yaml_dir)
+        
+        name = self.clean_name(name)
             
         if not kwargs.pop('force', False):
             try:

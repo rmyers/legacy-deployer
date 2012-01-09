@@ -35,7 +35,7 @@ class GroupAPI(BaseYamlAPI):
         """
         if user is not None:
             # check the group membership api
-            return api.permissions.list_groups(user)
+            return [self.get(g) for g in api.permissions.list_groups(user)]
         
         else: 
             # return the list of groups on filesystem
@@ -48,5 +48,9 @@ class GroupAPI(BaseYamlAPI):
         
         if not user.has_perm('delete', group=group):
             raise PermissionError("You do not have permission to delete groups")
+        
+        log.info("Deleting permissions for group: %s", group)
+        for perm in api.permissions.for_group(group):
+            api.permissions.delete(perm)
         
         return super(GroupAPI, self).delete(name)
