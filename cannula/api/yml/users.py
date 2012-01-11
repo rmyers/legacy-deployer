@@ -4,7 +4,7 @@ from cannula.api import PermissionError
 from cannula.api import BaseYamlAPI, messages
 from cannula.conf import api
 
-log = getLogger('api.users')
+logger = getLogger('api.users')
 
 class UserAPI(BaseYamlAPI):
     

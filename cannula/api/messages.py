@@ -11,6 +11,12 @@ class Message(object):
     
     def to_dict(self):
         return self.__dict__()
+    
+    def __str__(self):
+        return unicode(self)
+    
+    def __unicode__(self):
+        return self.name.replace('_', ' ').title()
 
 class User(Message):
     
@@ -79,20 +85,21 @@ class User(Message):
 
 class Group(Message):
     
-    def __init__(self, name, user=None, description='', created=None):
+    def __init__(self, name, user=None, description='', projects=[], created=None):
         self.name = name
         self.description= description
+        self.projects = projects
         if created is None:
             created = datetime.datetime.now()
-    
-    def __unicode__(self):
-        return self.name
     
     def get_absolute_url(self):
         return '/%s/' % (self.name)
     
     def to_dict(self):
-        return {'name': self.name, 'description': self.description}
+        return {
+            'name': self.name, 
+            'description': self.description, 
+            'projects': self.projects}
     
 class Project(Message):
     
@@ -105,9 +112,6 @@ class Project(Message):
         else:
             raise AttributeError('Group required')
         self.description = description
-    
-    def __unicode__(self):
-        return self.name
     
     def get_absolute_url(self):
         return '/%s/%s/' % (self.group, self.name)

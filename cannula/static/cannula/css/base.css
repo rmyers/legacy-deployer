@@ -2252,5 +2252,7 @@ form.popup {
  * ******************/
 .group {
   clear: both; }
+  .group h3 {
+    text-transform: capitalize; }
   .group .tools {
     float: right; }

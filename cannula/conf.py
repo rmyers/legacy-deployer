@@ -1,6 +1,7 @@
 
 import os
 import logging
+from ConfigParser import RawConfigParser
 
 from cannula.utils import import_object
 
@@ -10,22 +11,18 @@ class settings(object):
     """Just a dumb placeholder for no defaults."""
     
 # Check for if Django settings module is defined.
-if os.environ.get('DJANGO_SETTINGS_MODULE'):
-    from django.conf import settings
-elif os.environ.get('CANNULA_SETTINGS_MODULE'):
-    logging.info('Settings setup')
-    mod = os.environ['CANNULA_SETTINGS_MODULE']
-    if mod.endswith('.ini'):
-        import ConfigParser
-        config = ConfigParser.ConfigParser()
-        config.read([mod])
-        for k, v in config.items('cannula'):
-            logging.info("Setting: %s: %s", k, v)
-            setattr(settings, k.upper(), v)
-    else:
-        settings = import_object(mod)
-else:
-    logging.info("No custom settings found")
+#if os.environ.get('DJANGO_SETTINGS_MODULE'):
+#    from django.conf import settings
+#if os.environ.get('CANNULA_SETTINGS_MODULE', None):
+    #logging.info('Settings setup')
+    #mod = os.environ['CANNULA_SETTINGS_MODULE']
+    #config = ConfigParser()
+    #config.read([mod])
+    #for k, v in config.items('cannula'):
+        #logging.info("Setting: %s: %s", k, v)
+        #setattr(settings, k.upper(), v)
+#else:
+    #logging.info("No custom settings found")
     
 #
 # CANNULA DEFAULT SETTINGS
@@ -106,7 +103,7 @@ class API:
     #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
 
     def __init__(self):
-        self._defaults = ['log', 'groups',  'projects', 'users', 
+        self._defaults = ['groups',  'projects', 'users', 
                           'permissions', 'deploy', 'keys']
         # Allow for user defined API for any option not found
         # in the defaults add it now.
@@ -114,15 +111,15 @@ class API:
             if option not in self._defaults:
                 setattr(self, option, LazyAPI(value))
     
+# Setup cache
+CANNULA_CACHE = getattr(settings, "CANNULA_CACHE", "werkzeug.contrib.cache.SimpleCache")
+CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_timeout': 60*5})
+#
+_cache = import_object(CANNULA_CACHE)
+cache = _cache(**CANNULA_CACHE_OPTIONS)
 
 api = API()
 proxy = import_object(CANNULA_PROXY)
 supervisor = import_object(CANNULA_SUPERVISOR)
 
-# Setup cache
-CANNULA_CACHE = getattr(settings, "CANNULA_CACHE", "werkzeug.contrib.cache.SimpleCache")
-CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_timeout': 60*5})
-
-_cache = import_object(CANNULA_CACHE)
-cache = _cache(**CANNULA_CACHE_OPTIONS)
 

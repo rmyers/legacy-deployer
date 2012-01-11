@@ -152,6 +152,9 @@ form.popup {
  * ******************/
 
 .group {
+  h3 {
+    text-transform: capitalize;
+  }
   clear: both;
   .tools {
     float: right;

@@ -7,7 +7,7 @@ from cannula.conf import api, CANNULA_CMD
 from cannula.api.exceptions import ApiError
 from cannula.utils import render_to_string
 
-log = getLogger('api.keys')
+logger = getLogger('api.keys')
 
 class KeyAPI(BaseYamlAPI):
     

@@ -7,7 +7,7 @@ from cannula.conf import api
 from cannula.api.exceptions import UnitDoesNotExist
 
 
-log = getLogger('api')
+logger = getLogger('api')
 
 class PermissionAPI(BaseYamlAPI):
     
@@ -102,7 +102,7 @@ class PermissionAPI(BaseYamlAPI):
         group = api.groups.get(group)
         if self.list_members(group):
             raise ApiError("Grant admin only allowed on new group instances.")
-        log.info("Granting admin permissions to %s on %s", user, group)
+        logger.info("Granting admin permissions to %s on %s", user, group)
         self.create(self.obj_name(group, user), perms=['add', 'modify', 'delete'], force=True)
     
     def create_message(self, name, **kwargs):

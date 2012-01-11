@@ -11,7 +11,7 @@ from cannula.api.messages import Project
 from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_CMD
 from cannula.utils import write_file
 
-log = getLogger('api')
+logger = getLogger('api')
 
 class ProjectAPI(BaseYamlAPI):
     
@@ -65,15 +65,17 @@ class ProjectAPI(BaseYamlAPI):
         return super(ProjectAPI, self).create(name, group=group, description=description)
     
     def post_create(self, project, name, **kwargs):
-        log.info("Project %s created in %s" % (project, kwargs.get('group')))
+        logger.info("Project %s created in %s" % (project, kwargs.get('group')))
     
     def delete(self, name, user):
         project = self.get(name)
         user = api.users.get(user)
+        group = api.groups.get(project.group)
         
-        if not user.has_perm('delete', group=project.group):
+        if not user.has_perm('delete', group=group):
             raise PermissionError("You do not have permission to delete projects")
         
+        api.groups.delete_project(group, project.name)
         return super(ProjectAPI, self).delete(name)
     
     def initialize(self, name, user):
@@ -94,7 +96,7 @@ class ProjectAPI(BaseYamlAPI):
         
         # TODO: Create unix user for project
         
-        log.info("Creating project directories for: %s", project)
+        logger.info("Creating project directories for: %s", project)
         if not os.path.isdir(project.repo_dir):
             os.makedirs(project.repo_dir)
         
@@ -123,4 +125,4 @@ class ProjectAPI(BaseYamlAPI):
         # Write out a description file
         write_file(project.git_description, 'git/description.txt', ctx)
         
-        log.info("Project %s initialized", project)
+        logger.info("Project %s initialized", project)

@@ -12,7 +12,7 @@ from cannula.api import BaseYamlAPI, ApiError, messages
 from cannula.conf import api, proxy, supervisor, CANNULA_GIT_CMD, CANNULA_BASE
 from cannula.utils import write_file, shell, import_object, Git
 
-log = getLogger('api')
+logger = getLogger('api')
 
 class Handler(object):
     """Simple object to hold properties for wsgi handlers"""

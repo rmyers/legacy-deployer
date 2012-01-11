@@ -5,7 +5,7 @@ from cannula.conf import api
 from cannula.api.exceptions import ApiError
 import os
 
-log = getLogger('api')
+logger = getLogger('api')
 
 class GroupAPI(BaseYamlAPI):
     
@@ -23,7 +23,7 @@ class GroupAPI(BaseYamlAPI):
         user = kwargs.get('user')
         api.permissions.grant_admin(user, group)
         msg = 'Creating new group: %s' % name
-        log.info(msg)
+        logger.info(msg)
         
     
     def list(self, user=None):
@@ -41,6 +41,25 @@ class GroupAPI(BaseYamlAPI):
             # return the list of groups on filesystem
             groups = os.listdir(self.pd_dir)
             return [g.replace('.pb', '') for g in groups]
+    
+    def add_project(self, name, project_name):
+        group = self.get(name)
+        group.projects.append(project_name)
+        self.write(name, group)
+    
+    def delete_project(self, name, project_name):
+        group = self.get(name)
+        if project_name in group.projects:
+            group.projects.remove(project_name)
+            self.write(name, group)
+            return True
+        return False
+    
+    def list_projects(self, name, fetch=False):
+        group = self.get(name)
+        if fetch:
+            return [api.projects.get(p) for p in group.projects]
+        return group.projects
         
     def delete(self, name, user):
         group = self.get(name)
@@ -49,7 +68,7 @@ class GroupAPI(BaseYamlAPI):
         if not user.has_perm('delete', group=group):
             raise PermissionError("You do not have permission to delete groups")
         
-        log.info("Deleting permissions for group: %s", group)
+        logger.info("Deleting permissions for group: %s", group)
         for perm in api.permissions.for_group(group):
             api.permissions.delete(perm)
         
