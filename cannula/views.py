@@ -13,7 +13,7 @@ from django.views.generic.edit import ModelFormMixin, CreateView
 
 from cannula.models import Project, Key, ProjectGroup
 from cannula.forms import ProjectForm, ProjectGroupForm, SSHKeyForm
-from cannula.conf import api
+from cannula.api import api
 
 
 log = getLogger('cannula.views')

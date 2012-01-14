@@ -10,8 +10,9 @@ from logging import getLogger
 
 from django.db.models.loading import get_model
 
-from cannula.api import BaseAPI, ApiError
-from cannula.conf import api, proxy, supervisor, CANNULA_GIT_CMD, CANNULA_BASE
+from cannula.apis import BaseAPI, ApiError
+from cannula.api import api
+from cannula.conf import CANNULA_GIT_CMD, CANNULA_BASE
 from cannula.utils import write_file, shell, import_object, Git
 
 log = getLogger('api')
@@ -94,8 +95,8 @@ class DeployAPI(BaseAPI):
                     'conf_dir': os.path.join(CANNULA_BASE, 'config'),
                     'project': project,
                 }
-                proxy.write_vhost_conf(project, ctx)
-                supervisor.write_project_conf(project, ctx)
+                api.proxy.write_vhost_conf(project, ctx)
+                api.proc.write_project_conf(project, ctx)
                 
                 # Check if any files changed and check if still valid
                 shell(self.git_add_cmd, cwd=project.conf_dir)
@@ -103,26 +104,26 @@ class DeployAPI(BaseAPI):
                 logging.debug(changed)
                 if re.search('vhost.conf', changed):
                     try:
-                        proxy.restart()
+                        api.proxy.restart()
                     except:
                         logging.exception("Error restarting proxy")
                         shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
                 if re.search('supervisor.conf', changed):
                     try:
-                        supervisor.reread()
+                        api.proc.reread()
                     except:
                         logging.exception("Error reading supervisor configs")
                         shell(self.git_reset, cwd=project.conf_dir)
                         raise ApiError("Deployment failed")
                 
                 # Add the project
-                supervisor.add_project(project.name)
-                supervisor.reread()
+                api.proc.add_project(project.name)
+                api.proc.reread()
                 
             # Restart the project
             try:
-                supervisor.restart(project.name)
+                api.proc.restart(project.name)
             except:
                 logging.exception("Error restarting project")
                 shell(self.git_reset, cwd=project.conf_dir)

@@ -3,11 +3,10 @@ from logging import getLogger
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.db.models.loading import get_model
 
-from cannula.api import UnitDoesNotExist
-from cannula.api import ApiError
-from cannula.api import BaseAPI
+from cannula.apis import UnitDoesNotExist
+from cannula.apis import BaseAPI
 
-from cannula.conf import api
+from cannula.api import api
 
 Log = get_model('cannula', 'log')
 

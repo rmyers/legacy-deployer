@@ -2,9 +2,8 @@ from logging import getLogger
 
 from django.db.models.loading import get_model
 
-from cannula.api import DuplicateObject, UnitDoesNotExist, BaseAPI, PermissionError
-from cannula.conf import api
-from cannula.api.exceptions import ApiError
+from cannula.apis import ApiError, DuplicateObject, BaseAPI, PermissionError
+from cannula.api import api
 
 log = getLogger('api')
 

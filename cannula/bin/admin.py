@@ -33,11 +33,11 @@ import os
 from optparse import OptionParser
 
 def info(user):
-    from cannula.conf import api
+    from cannula.api import api
     print api.users.info(user)
 
 def create_group(user, name, description):
-    from cannula.conf import api
+    from cannula.api import api
     return api.groups.create(name, user, description)
 
 def has_perm(user, perm, group=None, project=None, repo=None):
@@ -45,7 +45,7 @@ def has_perm(user, perm, group=None, project=None, repo=None):
     Check that a user has a certain permission. 
     Exit non-zero if not so bash scripts may use this.
     """
-    from cannula.conf import api
+    from cannula.api import api
     if repo is not None:
         # TODO: make this better
         group = repo.split('/')[0]

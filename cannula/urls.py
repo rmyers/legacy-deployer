@@ -2,7 +2,6 @@ from django.conf.urls.defaults import url, patterns
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
-from cannula.conf import api
 from cannula.views import Index, CreateProject, GroupView, ProjectView, CreateGroup, CreateKey
 
 urlpatterns = patterns('',

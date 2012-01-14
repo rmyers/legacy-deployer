@@ -4,7 +4,7 @@ from django.conf import settings
 # Stop Django from pissing all over the console with debug messages!
 settings.DEBUG = False
 
-from cannula.conf import api
+from cannula.api import api
 
 class Command(BaseCommand):
     help = 'Print out an authorized_keys for the cannula user.'

@@ -4,9 +4,9 @@ from shutil import copy2
 
 from django.db.models.loading import get_model
 
-from cannula.api import DuplicateObject, BaseAPI, PermissionError
-from cannula.conf import api, CANNULA_CMD
-from cannula.api.exceptions import ApiError
+from cannula.apis import BaseAPI
+from cannula.conf import CANNULA_CMD
+from cannula.api import api
 from django.template.loader import render_to_string
 
 log = getLogger('api.keys')

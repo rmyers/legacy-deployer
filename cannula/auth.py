@@ -1,7 +1,7 @@
 
 from django.contrib.auth.backends import ModelBackend
 
-from cannula.conf import api
+from cannula.api import api
 
 class CannulaBackend(ModelBackend):
     

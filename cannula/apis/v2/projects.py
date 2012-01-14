@@ -5,11 +5,12 @@ from logging import getLogger
 
 from django.db.models.loading import get_model
 
-from cannula.api import DuplicateObject
-from cannula.api import UnitDoesNotExist
-from cannula.api import PermissionError
-from cannula.api import BaseAPI
-from cannula.conf import api, CANNULA_GIT_CMD, CANNULA_CMD
+from cannula.apis import DuplicateObject
+from cannula.apis import UnitDoesNotExist
+from cannula.apis import PermissionError
+from cannula.apis import BaseAPI
+from cannula.conf import CANNULA_GIT_CMD, CANNULA_CMD
+from cannula.api import api
 from cannula.utils import write_file
 
 log = getLogger('api')

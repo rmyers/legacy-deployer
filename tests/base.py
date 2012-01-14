@@ -34,7 +34,8 @@ class CannulaTestCase(unittest.TestCase):
                 if key.startswith('cannula'):
                     del sys.modules[key]
                     
-            from cannula.conf import api, CANNULA_BASE, supervisor, proxy
+            from cannula.conf import CANNULA_BASE, supervisor, proxy
+            from cannula.api import api
             self.assertEqual(CANNULA_BASE, self.base_dir)
             self.api = api
             self.proc = supervisor

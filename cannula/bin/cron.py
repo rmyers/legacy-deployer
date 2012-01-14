@@ -14,7 +14,7 @@ import os
 from optparse import OptionParser
 
 def keys():
-    from cannula.conf import api
+    from cannula.api import api
     api.keys.write_keys()
 
 def main():

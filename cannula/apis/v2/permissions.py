@@ -2,11 +2,11 @@ from logging import getLogger
 
 from django.db.models.loading import get_model
 
-from cannula.api import UnitDoesNotExist
-from cannula.api import ApiError
-from cannula.api import BaseAPI
-from cannula.api import PermissionError
-from cannula.conf import api
+from cannula.apis import UnitDoesNotExist
+from cannula.apis import ApiError
+from cannula.apis import BaseAPI
+from cannula.apis import PermissionError
+from cannula.api import api
 
 
 log = getLogger('api')
