@@ -1,18 +1,17 @@
 
 import os
-import logging
-from ConfigParser import RawConfigParser
 
 from cannula.utils import import_object
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-
-class settings(object):
-    """Just a dumb placeholder for no defaults."""
     
 # Check for if Django settings module is defined.
-#if os.environ.get('DJANGO_SETTINGS_MODULE'):
-#    from django.conf import settings
+if os.environ.get('DJANGO_SETTINGS_MODULE'):
+    from django.conf import settings
+else:
+    class settings(object):
+        pass
+    
 #if os.environ.get('CANNULA_SETTINGS_MODULE', None):
     #logging.info('Settings setup')
     #mod = os.environ['CANNULA_SETTINGS_MODULE']
@@ -58,16 +57,16 @@ CANNULA_CMD = getattr(settings, 'CANNULA_CMD', _cannula_cmd)
 # this dictionary will be updated with the user defined one.
 CANNULA_API = {
     #'clusters': 'cannula.api.djangodb.clusters.ClusterAPI',
-    'deploy': 'cannula.api.yml.deploy.DeployAPI',
-    'groups': 'cannula.api.yml.groups.GroupAPI',
-    'keys': 'cannula.api.yml.keys.KeyAPI',
-    #'log': 'cannula.api.yml.log.LoggingAPI',
+    'deploy': 'cannula.api.v2.deploy.DeployAPI',
+    'groups': 'cannula.api.v2.groups.GroupAPI',
+    'keys': 'cannula.api.v2.keys.KeyAPI',
+    'log': 'cannula.api.v2.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
-    'permissions': 'cannula.api.yml.permissions.PermissionAPI',
-    'projects': 'cannula.api.yml.projects.ProjectAPI',
+    'permissions': 'cannula.api.v2.permissions.PermissionAPI',
+    'projects': 'cannula.api.v2.projects.ProjectAPI',
     #'servers': 'cannula.api.djangodb.servers.ServerAPI',
     #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
-    'users': 'cannula.api.yml.users.UserAPI',
+    'users': 'cannula.api.v2.users.UserAPI',
 }
 # Update the api with user specified Classes.
 _api = getattr(settings, 'CANNULA_API', {})
@@ -94,7 +93,7 @@ class API:
     deploy = LazyAPI(CANNULA_API['deploy'])
     groups = LazyAPI(CANNULA_API['groups'])
     keys = LazyAPI(CANNULA_API['keys'])
-    #log = LazyAPI(CANNULA_API['log'])
+    log = LazyAPI(CANNULA_API['log'])
     #packages = LazyAPI(CANNULA_API['packages'])
     permissions = LazyAPI(CANNULA_API['permissions'])
     projects = LazyAPI(CANNULA_API['projects'])
@@ -112,11 +111,11 @@ class API:
                 setattr(self, option, LazyAPI(value))
     
 # Setup cache
-CANNULA_CACHE = getattr(settings, "CANNULA_CACHE", "werkzeug.contrib.cache.SimpleCache")
-CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_timeout': 60*5})
+#CANNULA_CACHE = getattr(settings, "CANNULA_CACHE", "werkzeug.contrib.cache.SimpleCache")
+#CANNULA_CACHE_OPTIONS = getattr(settings, "CANNULA_CACHE_OPTIONS", {'default_timeout': 60*5})
 #
-_cache = import_object(CANNULA_CACHE)
-cache = _cache(**CANNULA_CACHE_OPTIONS)
+#_cache = import_object(CANNULA_CACHE)
+#cache = _cache(**CANNULA_CACHE_OPTIONS)
 
 api = API()
 proxy = import_object(CANNULA_PROXY)

@@ -30,7 +30,7 @@
 	<h4>{{ group }}</h4>
 	<ul>
 	{% for project in group.project_set.all %}
-		<li><a href="#">{{ project.group.name }}/{{ project.name }}</a></li>
+		<li><a href="{% url project-details project.group.name,project.name %}">{{ project.group.name }}/{{ project.name }}</a></li>
 	{% endfor %}
 	{% if group in groups_create %}
 	    <li><a href="{% url create-project %}?group={{ group.name }}" class="addlink">Add Project</a></li>
