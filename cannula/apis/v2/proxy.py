@@ -29,20 +29,19 @@ from cannula.api import api
 class Proxy(object):
     
     name = ''
+    cmd = ''
     extra_files = []
     start_cmd = 'echo "Proxy did not define start_cmd"'
     stop_cmd = 'echo "Proxy did not define stop_cmd"'
     restart_cmd = 'echo "Proxy did not define restart_cmd"'
     
-    def __init__(self, template_base='proxy', cmd=''):
+    def __init__(self, template_base='proxy'):
         self.proxy_base = os.path.join(CANNULA_BASE, 'proxy')
         self.template_base = posixpath.join(template_base, self.name)
         self.main_conf = os.path.join(self.proxy_base, '%s.conf' % self.name)
         self.vhost_base = os.path.join(CANNULA_BASE, 'config')
         if CANNULA_PROXY_NEEDS_SUDO:
-            self.cmd = 'sudo %s' % cmd
-        else:
-            self.cmd = cmd
+            self.cmd = 'sudo %s' % self.cmd
         self.supervisor_managed = CANNULA_SUPERVISOR_MANAGES_PROXY
         self.context = {
             'proxy_base': self.proxy_base,
@@ -197,6 +196,7 @@ class Proxy(object):
 class Nginx(Proxy):
     
     name = 'nginx'
+    cmd = 'nginx'
     extra_files = [
         'mime.types',
         'fastcgi_params',
@@ -211,11 +211,10 @@ class Nginx(Proxy):
 class Apache(Proxy):
     
     name = 'apache'
+    cmd = 'httpd'
     # TODO: Find extra files to add
     extra_files = []
     start_cmd = '%(cmd)s -f %(main_conf)s -k start'
     stop_cmd = '%(cmd)s -f %(main_conf)s -k stop'
     restart_cmd = '%(cmd)s -f %(main_conf)s -k graceful'
     
-nginx = Nginx(cmd='nginx')
-apache = Apache(cmd='httpd')

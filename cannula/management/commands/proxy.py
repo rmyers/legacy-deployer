@@ -5,7 +5,7 @@ from django.conf import settings
 
 settings.DEBUG = False
 
-from cannula.conf import proxy
+from cannula.api import api
 
 class Command(BaseCommand):
     help = 'Print out a base proxy conf file to use for this project.'
@@ -27,6 +27,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         
-        output = proxy.write_main_conf(**options)
+        output = api.proxy.write_main_conf(**options)
         
         self.stdout.write(output)

@@ -65,7 +65,7 @@ CANNULA_API = {
     'permissions': 'cannula.apis.v2.permissions.PermissionAPI',
     'proc': 'cannula.apis.v2.proc.supervisord',
     'projects': 'cannula.apis.v2.projects.ProjectAPI',
-    'proxy': 'cannula.apis.v2.proxy.nginx',
+    'proxy': 'cannula.apis.v2.proxy.Nginx',
     #'servers': 'cannula.api.djangodb.servers.ServerAPI',
     #'unix_ids': 'cannula.api.djangodb.unix_id.UnixIDAPI',
     'users': 'cannula.apis.v2.users.UserAPI',
