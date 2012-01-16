@@ -35,7 +35,7 @@ CANNULA_BASE = getattr(settings, 'CANNULA_BASE', '/tmp/cannula/')
 #     'cannula.proxy.nginx'
 #     'cannula.proxy.apache'
 #     or roll your own and provide the dotted path here
-CANNULA_PROXY = getattr(settings, 'CANNULA_PROXY', 'cannula.apis.v2.proxy.nginx')
+CANNULA_PROXY_CMD = getattr(settings, 'CANNULA_PROXY', 'nginx')
 CANNULA_PROXY_NEEDS_SUDO = getattr(settings, 'CANNULA_PROXY_NEEDS_SUDO', False)
 
 # Process Supervisor Settings
@@ -63,7 +63,7 @@ CANNULA_API = {
     'log': 'cannula.apis.v2.log.LoggingAPI',
     #'packages': 'cannula.api.djangodb.packages.PackageAPI',
     'permissions': 'cannula.apis.v2.permissions.PermissionAPI',
-    'proc': 'cannula.apis.v2.proc.supervisord',
+    'proc': 'cannula.apis.v2.proc.Supervisord',
     'projects': 'cannula.apis.v2.projects.ProjectAPI',
     'proxy': 'cannula.apis.v2.proxy.Nginx',
     #'servers': 'cannula.api.djangodb.servers.ServerAPI',

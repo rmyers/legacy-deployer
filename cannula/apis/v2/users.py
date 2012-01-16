@@ -53,9 +53,9 @@ class UserAPI(BaseAPI):
         output += "Your Groups and Projects\n"
         groups = [g.group for g in user.groupmembership_set.all()]
         for group in groups:
-            output += " - %s" % group
+            output += " - %s:\n" % group
             for project in group.projects:
-                output += "\t%s" % project
+                output += "\t- %s\n" % project
         
         return output
     

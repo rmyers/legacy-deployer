@@ -21,24 +21,25 @@ templates. The templates are arranged like this::
 import os
 import posixpath
 
-from cannula.conf import CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO
-from cannula.utils import shell, Git, render_to_string, write_file
+from cannula.conf import CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO,\
+    CANNULA_PROXY_CMD
+from cannula.utils import shell, write_file
 
 from cannula.api import api
+from cannula.apis import Configurable
 
-class Proxy(object):
+class Proxy(Configurable):
     
+    conf_type = 'proxy'
     name = ''
-    cmd = ''
     extra_files = []
     start_cmd = 'echo "Proxy did not define start_cmd"'
     stop_cmd = 'echo "Proxy did not define stop_cmd"'
     restart_cmd = 'echo "Proxy did not define restart_cmd"'
     
     def __init__(self, template_base='proxy'):
+        self.cmd = CANNULA_PROXY_CMD
         self.proxy_base = os.path.join(CANNULA_BASE, 'proxy')
-        self.template_base = posixpath.join(template_base, self.name)
-        self.main_conf = os.path.join(self.proxy_base, '%s.conf' % self.name)
         self.vhost_base = os.path.join(CANNULA_BASE, 'config')
         if CANNULA_PROXY_NEEDS_SUDO:
             self.cmd = 'sudo %s' % self.cmd
@@ -83,108 +84,6 @@ class Proxy(object):
         code, output = shell(self.restart_cmd % self.__dict__)
         if code != 0:
             raise Exception(output)
-    
-    def initialize(self, dry_run=False):
-        """Create proxy base directory and run git init. Return True if it exists."""
-        if os.path.isdir(self.proxy_base):
-            return True
-        
-        if dry_run:
-            return False
-        os.makedirs(self.proxy_base)
-        shell(Git.init, cwd=self.proxy_base)
-        return True
-    
-    def render_file(self, context, template):
-        """
-        Render the config file from the templates.
-        """
-        if '/' not in template:
-            # template is not a full path, generate it now.
-            template = posixpath.join(self.template_base, template)
-        try:
-            content = render_to_string(template, context)
-        except:
-            return ''
-
-        return content
-    
-    def write_extras(self, extra_context={}, initialized=False):
-        """
-        Write all of the extra files to the proxy_base configuration directory.
-        If initialized is False just return a list of files that would be created.
-        """
-        ctx = self.context.copy()
-        ctx.update(extra_context)
-        
-        to_commit = []
-        
-        for extra in self.extra_files:
-            fname = os.path.join(self.proxy_base, extra)
-            to_commit.append(fname)
-            content = self.render_file(ctx, extra)
-            if not initialized:
-                continue
-            
-            # Write the file
-            with open(fname, 'w') as conf_file:
-                conf_file.write(content)
-        
-        return to_commit
-            
-        
-    def write_main_conf(self, extra_context={}, commit=False, dry_run=False, msg='', **kwargs):
-        """
-        Write file to the filesystem, if the template does not 
-        exist fail silently. Otherwise write the file out and return
-        boolean if the content had changed from last write. If the 
-        file is new then return True.
-        """
-        ctx = self.context.copy()
-        ctx.update(extra_context)
-        content = self.render_file(ctx, 'main.conf')
-        
-        outmsg = ''
-        
-        if commit or dry_run:
-            initialized = self.initialize(dry_run)
-            files = self.write_extras(extra_context, initialized)
-            # If folder hasn't been initialized and we are doing a
-            # dry run bail early and notify of all files which will
-            # be created.
-            if not initialized and dry_run:
-                new = [self.proxy_base, self.main_conf] + files
-                return 'New Files:\n\n%s\n' % '\n'.join(new)
-            with open(self.main_conf, 'w') as conf:
-                conf.write(content)
-            
-            # Generate diff 
-            _, diff_out = shell(Git.diff, cwd=self.proxy_base)
-            # Add all the files for either a commit or reset
-            shell(Git.add_all, cwd=self.proxy_base)
-            _, output = shell(Git.status, cwd=self.proxy_base)
-            if not output:
-                # Bail early
-                return '\n\nNo Changes Found\n'
-            else:
-                outmsg += '\n\nFiles Changed:\n %s\n%s\n' % (output, diff_out)
-                
-            if dry_run:
-                shell(Git.reset, cwd=self.proxy_base)
-                return outmsg
-            
-            # Commit the changes
-            code, output = shell(Git.commit % msg, cwd=self.proxy_base)
-            if code == 0:
-                outmsg += '%s\n' % output
-                return outmsg
-            else:
-                shell(Git.reset, cwd=self.proxy_base)
-                outmsg += "Commit Failed: %s\n" % output
-                return outmsg
-        
-        # Default just print the content    
-        return content
         
     def write_vhost_conf(self, project, extra_context={}):
         ctx = self.context.copy()
@@ -196,7 +95,7 @@ class Proxy(object):
 class Nginx(Proxy):
     
     name = 'nginx'
-    cmd = 'nginx'
+    main_conf_name = 'nginx.conf'
     extra_files = [
         'mime.types',
         'fastcgi_params',
@@ -211,7 +110,7 @@ class Nginx(Proxy):
 class Apache(Proxy):
     
     name = 'apache'
-    cmd = 'httpd'
+    main_conf_name = 'httpd.conf'
     # TODO: Find extra files to add
     extra_files = []
     start_cmd = '%(cmd)s -f %(main_conf)s -k start'
