@@ -1,7 +1,50 @@
 {%  extends "cannula/base.html" %}
 {% load gravatar %}
 
+{% block extrahead %}
+<script>
+    $(function() {
+        var groups = new GroupCollection('{{ csrf_token }}');
+        ko.applyBindings(groups);
+    });
+</script>
+{% endblock %}
+
 {% block content %}
+<h3 id='groups'>Groups{% if user.is_superuser %} <a href="#" data-bind="click: toggleForm" class="btn">Add Group</a>{% endif %}</h3>
+<form class='popup wide' data-bind="fadeVisible: formVisible">
+    <fieldset>
+        <legend>Create Project Group</legend>
+        <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
+        <div class="clearfix">
+            <label for="id_name">Name:</label>
+            <div class="input">
+                <input id="id_name" name='name' data-bind="value: newName" maxlength="100" /> 
+            </div>
+        </div>
+        <div class="clearfix">
+            <label for="id_description">Description:</label>
+            <div class="input">
+                <textarea id="id_description" data-bind="value: newDescription" rows="5" cols="40" name="description"></textarea>
+            </div>
+        </div>
+        <div class="actions">
+            <button data-bind="click: addObject" class='btn primary'>Create Project Group</button>
+            <a href="#" data-bind="click: toggleForm">Cancel</a>
+        </div>
+    </fieldset>
+</form>
+
+<div class='groups' data-bind="foreach: items">
+    <h4><a href="#" data-bind='attr: {href: absolute_url}, text: name'></a></h4>
+    <ul data-bind="foreach: $data.projects">
+        <li><a href="#" data-bind="attr: {href: url}, text: name"></a></li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block sidebar %}
 <h3>Recent Actions</h3>
 {% if news %}
     {% for msg in news.object_list %}
@@ -10,8 +53,10 @@
            <div class="message">
                 <span>
                    {% if msg.project %}
-                   <a href="{% url project-details msg.project.group,msg.project %}">{{ msg.message }}</a>
-                   {% else %}{{ msg.message}}{% endif %}
+                   <a href="{{ msg.project.get_absolute_url }}">{{ msg.message }}</a>
+                   {% else %}{% if msg.group %}
+                   <a href="{{ msg.group.get_absolute_url }}">{{ msg.message }}</a>
+                   {% else %}{{ msg.message}}{% endif %}{% endif %}
                 </span>
                 <p class="quiet">{{ msg.timestamp|timesince:now }} ago by {{msg.user }}</p>  
            </div>
@@ -19,26 +64,5 @@
     {% endfor %}
 {% else %}
     <p>No news for your groups/projects.</p>
-{% endif %}
-{% endblock %}
-
-
-{% block sidebar %}
-{% if groups %}
-<h3>Groups</h3>
-{% for group in groups %}
-	<h4>{{ group }}</h4>
-	<ul>
-	{% for project in group.project_set.all %}
-		<li><a href="{% url project-details project.group.name,project.name %}">{{ project.group.name }}/{{ project.name }}</a></li>
-	{% endfor %}
-	{% if group in groups_create %}
-	    <li><a href="{% url create-project %}?group={{ group.name }}" class="addlink">Add Project</a></li>
-	{% endif %}
-	</ul>
-{% endfor %}
-{% else %}
-    <p>You are not in any groups.</p>
-    <p><a href="{% url create-group %}">Create One!</a></p>
 {% endif %}
 {% endblock %}

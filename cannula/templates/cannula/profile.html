@@ -1,7 +1,74 @@
 {%  extends "cannula/base.html" %}
 {% load gravatar %}
 
+{% block extrahead %}
+<script>
+    $(function() {
+        var keys = new KeyCollection('{{ csrf_token }}');
+        ko.applyBindings(keys);
+    });
+</script>
+{% endblock %}
+
 {% block content %}
+<h3>SSH Keys <a href="#" data-bind="click: toggleForm" class="btn">Add Key</a></h3>
+<form class='popup wide' data-bind="fadeVisible: formVisible">
+    <fieldset>
+        <legend>Create SSH Key</legend>
+        <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
+        <div class="clearfix">
+            <label for="id_name">Name:</label>
+            <div class="input">
+                <input id="id_name" name='name' data-bind="value: newName" maxlength="100" /> 
+            </div>
+        </div>
+        <div class="clearfix">
+            <label for="id_description">SSH Key:</label>
+            <div class="input">
+                <textarea id="id_description" data-bind="value: newKey" rows="12" cols="60" name="description"></textarea>
+            </div>
+        </div>
+        <div class="actions">
+            <button data-bind="click: addObject" class='btn primary'>Create SSH Key</button>
+            <a href="#" data-bind="click: toggleForm">Cancel</a>
+        </div>
+    </fieldset>
+</form>
+
+<div class="alert-message block-message info">
+    <p><strong>Note:</strong> You can create a ssh-key by using the following command:</p>
+    <pre>$ ssh-keygen</pre>
+</div>
+<ul data-bind="foreach: items">
+    <li><a href="#" data-bind="click: toggleForm, text: name"></a>
+        <form class='popup wide' data-bind="fadeVisible: editFormVisible">
+            <fieldset>
+                <legend>Edit SSH Key</legend>
+                <div class="alert-message error" data-bind="visible: editErrors, html: editErrors"></div>
+                <div class="clearfix">
+                    <label for="id_name">Name:</label>
+                    <div class="input">
+                        <input id="id_name" name='name' data-bind="value: name" maxlength="100" /> 
+                    </div>
+                </div>
+                <div class="clearfix">
+                    <label for="id_ssh_key">SSH Key:</label>
+                    <div class="input">
+                        <textarea id="id_ssh_key" data-bind="value: key" rows="12" cols="60" name="ssh_key"></textarea>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button data-bind="click: editObject" class='btn primary'>Update SSH Key</button>
+                    <a href="#" data-bind="click: toggleForm">Cancel</a>
+                </div>
+            </fieldset>
+        </form>
+    </li>
+</ul>
+{% endblock %}
+
+
+{% block sidebar %}
 <h3>{{ user }}</h3>
 <div class="news">
     <img src="{% gravatar_url user.email 100 %}" alt="{{ user.username }}" />
@@ -11,29 +78,4 @@
         <p>Member since {{ user.date_joined|date }}</p>
     </div>
 </div>
-
-<h3>SSH Keys</h3>
-<ul>
-{% for key in keys %}
-    <li>{{ key }}</li>
-{% endfor %} 
-    <li><a href="{% url create-key %}">Add Key</a></li>   
-</ul>
-
-{% endblock %}
-
-
-{% block sidebar %}
-<h3>Groups</h3>
-{% for group in groups %}
-	<h4>{{ group }}</h4>
-	<ul>
-	{% for project in group.project_set.all %}
-		<li><a href="#">{{ project.group.name }}/{{ project.name }}</a></li>
-	{% endfor %}
-	{% if group in groups_create %}
-	    <li><a href="{% url create-project %}?group={{ group.name }}" class="addlink">Add Project</a></li>
-	{% endif %}
-	</ul>
-{% endfor %}
 {% endblock %}

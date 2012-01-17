@@ -7,10 +7,11 @@
  *  methods:
  *    * deleteObject: Delete the model
  */
-var Model = function(obj) {
+var Model = function(obj, csrftoken) {
     this.name = ko.observable(obj.name);
     this.title = this.name().replace(/_/gi, ' ');
     this.formVisible = ko.observable(false);
+    this.csrftoken = csrftoken;
 
     this.toggleForm = function() {
         this.formVisible(!this.formVisible());
@@ -20,6 +21,7 @@ var Model = function(obj) {
         jQuery.ajax({
             url : this.url,
             type : 'DELETE',
+            data : {csrfmiddlewaretoken: this.csrftoken},
             success : $.proxy(function(data) {
                 if(this.onDelete) {
                     this.onDelete(this);
@@ -29,20 +31,68 @@ var Model = function(obj) {
     };
 };
 
-var Group = function(obj) {
-    jQuery.proxy(Model, this)(obj);
+var Group = function(obj, csrftoken) {
+    jQuery.proxy(Model, this)(obj, csrftoken);
     this.absolute_url = '/' + this.name() + '/';
     this.description = ko.observable(obj.description);
-    this.url = '/api/groups/' + this.name();
-}
+    this.url = '/_api/groups/' + this.name();
+};
 
-var Project = function(obj) {
-    jQuery.proxy(Model, this)(obj);
+var Project = function(obj, csrftoken) {
+    jQuery.proxy(Model, this)(obj, csrftoken);
     this.group = obj.group
     this.description = ko.observable(obj.description)
     this.absolute_url = '/' + obj.group + '/' + this.name() + '/';
-    this.url = '/api/projects/' + this.name();
-}
+    this.url = '/_api/projects/' + this.name();
+};
+
+var Key = function(obj, csrftoken) {
+    jQuery.proxy(Model, this)(obj, csrftoken);
+    this.name = ko.observable(obj.name);
+    this.key = ko.observable(obj.ssh_key);
+    this.url = '/_api/keys/' + this.name();
+    this.editErrors = ko.observable();
+    this.csrftoken = csrftoken;
+    this.editFormVisible = ko.observable(false);
+    
+    this.toggleForm = function() {
+        this.editFormVisible(!this.editFormVisible());
+    };
+    
+    this.editOptions = function() {
+        console.log(this.csrftoken);
+        return {
+            csrfmiddlewaretoken: this.csrftoken,
+            name: this.name(),
+            ssh_key: this.key()
+        }; 
+    };
+    
+    this.editObject = function(formElement) {
+        jQuery.ajax({
+            url : this.url,
+            type : 'POST',
+            data : this.editOptions(),
+            success : $.proxy(function(data) {
+                if(data.errorMsg) {
+                    this.errors(data.errorMsg);
+                } else {
+                    var obj = new this.model(data, this.csrftoken);
+                    obj.onDelete = jQuery.proxy(this.itemDeleted, this);
+                    this.items.push(obj);
+                    this.resetForm();
+                }
+            }, this),
+            error : $.proxy(function(data) {
+                console.log(data);
+                this.errors(data);
+            }, this),
+            complete : $.proxy(function() {
+                this.working(false);
+            }, this)
+        });
+    };
+};
 
 /*
  *  Generic Collection
@@ -52,10 +102,11 @@ var Project = function(obj) {
  *   * extractData: pull the data from the api call and create
  *                  this.model objects with the data.
  */
-var Collection = function() {
+var Collection = function(csrftoken) {
     // Fetching objects for the collection
     this.working = ko.observable(false);
     this.items = ko.observableArray([]);
+    this.csrftoken = csrftoken;
     this.options = {};
     this.url = '';
     this.model = null;
@@ -67,7 +118,7 @@ var Collection = function() {
     
     // Callback for new object creation form data
     this.newOptions = function () {
-        return {};
+        return {csrfmiddlewaretoken: this.csrftoken};
     };
     
     // Extract data and enrich it with model object
@@ -76,7 +127,7 @@ var Collection = function() {
             if (this.model) {
                 var objs = data.objects;
                 ko.utils.arrayForEach(objs, jQuery.proxy(function(obj) {
-                    jQuery.extend(obj, new this.model(obj));
+                    jQuery.extend(obj, new this.model(obj, this.csrftoken));
                     obj.onDelete = jQuery.proxy(this.itemDeleted, this);
                 }, this));
                 return data.objects;
@@ -137,9 +188,9 @@ var Collection = function() {
     
 }
 
-var GroupCollection = function() {
-    jQuery.proxy(Collection, this)();
-    this.url = '/api/groups/';
+var GroupCollection = function(csrftoken) {
+    jQuery.proxy(Collection, this)(csrftoken);
+    this.url = '/_api/groups/';
     this.newName = ko.observable('');
     this.newDescription = ko.observable('');
     this.errors = ko.observable();
@@ -148,8 +199,9 @@ var GroupCollection = function() {
     
     this.newOptions = function () {
         return {
+            csrfmiddlewaretoken: this.csrftoken,
             name: this.newName(),
-            description: this.newDescription(),    
+            description: this.newDescription() 
         };
     };
 
@@ -169,8 +221,8 @@ var GroupCollection = function() {
     
 };
 
-var ProjectCollection = function(groupName) {
-    jQuery.proxy(Collection, this)();
+var ProjectCollection = function(groupName, csrftoken) {
+    jQuery.proxy(Collection, this)(csrftoken);
     this.url = '/api/projects/';
     this.options = {group: groupName};
     this.newName = ko.observable('');
@@ -184,12 +236,46 @@ var ProjectCollection = function(groupName) {
             name: this.newName(),
             description: this.newDescription(),
             group: groupName,
+            csrfmiddlewaretoken: this.csrftoken
         };
     };
     
     this.resetForm = function() {
         this.newName('');
         this.newDescription('');
+        this.formVisible(false);
+        this.errors('');
+    };
+
+    this.toggleForm = function() {
+        this.formVisible(!this.formVisible());
+    };
+    
+    // Grab the initial groups
+    this.fetch();
+    
+};
+
+var KeyCollection = function(csrftoken) {
+    jQuery.proxy(Collection, this)(csrftoken);
+    this.url = '/_api/keys/';
+    this.newName = ko.observable('');
+    this.newKey = ko.observable('');
+    this.errors = ko.observable();
+    this.formVisible = ko.observable(false);
+    this.model = Key;
+    
+    this.newOptions = function () {
+        return {
+            name: this.newName(),
+            sshkey: this.newkey(),
+            csrfmiddlewaretoken: this.csrf_token
+        };
+    };
+    
+    this.resetForm = function() {
+        this.newName('');
+        this.newKey('');
         this.formVisible(false);
         this.errors('');
     };
@@ -217,3 +303,57 @@ ko.bindingHandlers.fadeVisible = {
         ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).fadeOut();
     }
 };
+
+/* ============================================================
+ * bootstrap-dropdown.js v1.3.0
+ * http://twitter.github.com/bootstrap/javascript.html#dropdown
+ * ============================================================
+ * Copyright 2011 Twitter, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ============================================================ */
+
+
+!function( $ ){
+
+  /* DROPDOWN PLUGIN DEFINITION
+   * ========================== */
+
+  $.fn.dropdown = function ( selector ) {
+    return this.each(function () {
+      $(this).delegate(selector || d, 'click', function (e) {
+        var li = $(this).parent('li')
+          , isActive = li.hasClass('open')
+
+        clearMenus()
+        !isActive && li.toggleClass('open')
+        return false
+      })
+    })
+  }
+
+  /* APPLY TO STANDARD DROPDOWN ELEMENTS
+   * =================================== */
+
+  var d = 'a.menu, .dropdown-toggle'
+
+  function clearMenus() {
+    $(d).parent('li').removeClass('open')
+  }
+
+  $(function () {
+    $('html').bind("click", clearMenus)
+    $('body').dropdown( '[data-dropdown] a.menu, [data-dropdown] .dropdown-toggle' )
+  })
+
+}( window.jQuery || window.ender );

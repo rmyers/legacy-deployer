@@ -19,7 +19,7 @@ class PermissionAPI(BaseAPI):
     group = get_model('cannula', 'projectgroup')
     
     def has_perm(self, user, perm, group=None, project=None, obj=None):
-        if not perm in ['add', 'modify', 'delete']:
+        if not perm in ['add', 'modify', 'delete', 'read']:
             # Bail early!
             return False
 
@@ -44,8 +44,12 @@ class PermissionAPI(BaseAPI):
         kwargs = {
             'user': user,
             'group': group,
-            perm: True,
         }
+        # Read permission is given to all members so just check if they
+        # are members.
+        if perm != 'read':
+            kwargs.update({perm: True})
+
         return self.model.objects.filter(**kwargs).count()
     
     

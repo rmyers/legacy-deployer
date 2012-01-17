@@ -78,6 +78,14 @@ class ProjectGroup(models.Model):
     def projects(self):
         return self.project_set.all()
     
+    def to_dict(self):
+        d = {
+             'name': self.name,
+             'description': self.description,
+             'projects': [p.to_dict() for p in self.projects],
+        }
+        return d
+    
 class GroupMembership(models.Model):
     """
     Many to Many relationship for the Project Group membership. This holds a
@@ -111,6 +119,14 @@ class Project(models.Model):
     
     def get_absolute_url(self):
         return '/%s/%s/' % (self.group.name, self.name)
+    
+    def to_dict(self):
+        return {
+            'name': self.name, 
+            'description': self.description, 
+            'group': self.group.name,
+            'url': self.get_absolute_url()
+        }
     
     #
     # Project Read-only Settings
@@ -185,7 +201,10 @@ class Key(models.Model):
     
     def __unicode__(self):
         return self.name
-
+    
+    def to_dict(self):
+        return {'name': self.name, 'ssh_key': self.ssh_key}
+    
 class Log(models.Model):
     """
     Logs for group/project actions.

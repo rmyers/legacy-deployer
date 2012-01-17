@@ -5,51 +5,87 @@ import datetime
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden,\
+    HttpResponseServerError, HttpResponse, HttpResponseNotAllowed
 from django.utils.decorators import method_decorator
-from django.views.generic.base import TemplateResponseMixin, View, TemplateView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import ModelFormMixin, CreateView
+from django.views.generic.edit import CreateView
+from cannula.apis.exceptions import DuplicateObject
+from django.core.urlresolvers import reverse
+
+try:
+    import json
+except ImportError: # pragma: nocover
+    from django.utils import simplejson as json
 
 from cannula.models import Project, Key, ProjectGroup
 from cannula.forms import ProjectForm, ProjectGroupForm, SSHKeyForm
 from cannula.api import api
 
 
-log = getLogger('cannula.views')
+logger = getLogger('cannula.views')
+
+def respond_json(obj):
+    try:
+        json_obj = json.dumps(obj)
+    except:
+        raise HttpResponseServerError("Could not decode object")
+    
+    return HttpResponse(json_obj, mimetype='application/json')
+
+def ajax_errors(form):
+    return ' '.join([str(e) for e in form.errors.values()])
 
 @login_required
 def profile(request):
     keys = api.keys.list(user=request.user)
-    groups = api.groups.list(user=request.user)
+
     return render_to_response('cannula/profile.html',
         RequestContext(request, {
+            'title': unicode(request.user),
             'keys': keys,
-            'groups': groups,
         })
     )
 
-class AuthMixin(object):
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(AuthMixin, self).dispatch(*args, **kwargs)
-    
-class Index(TemplateView):
-    template_name = 'cannula/index.html'
-    
-    def get_context_data(self, **kwargs):
-        user = self.request.user
-        groups = api.groups.list(user=user)
-        groups_create = api.groups.list(user=user, perm='add')
-        return RequestContext(self.request, {
+
+@login_required
+def index(request):
+    user = request.user
+    groups = api.groups.list(user=user)
+    return render_to_response('cannula/index.html',
+        RequestContext(request, {
             'title': "My Groups and Projects",
             'groups': groups,
-            'groups_create': groups_create, 
             # Flag to disable breadcrumbs
             'home_page': True,
             'now': datetime.datetime.now(),
             'news': api.log.news(groups=groups),
         })
+    )
+
+@login_required
+def create_project(request):
+    group = api.groups.get(request.GET['group'])
+    if not request.user.has_perm('add', obj=group):
+        raise HttpResponseForbidden("You do not have permission to add projects.")
+    
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            # Create the project
+            try:
+                project = api.projects.create(user=request.user, group=group, **form.cleaned_data)
+                return HttpResponseRedirect(reverse('project-details', args=[group.name, project.name]))
+            except DuplicateObject:
+                form._errors["name"] = form.error_class(['Project by that name already exists'])
+    else:
+        form = ProjectForm()
+    
+    return render_to_response('cannula/form.html',
+        RequestContext(request, {
+            'title': "Create Project for %s" % group,
+            'form': form,
+        })
+    )
 
 class CreateProject(CreateView):
     
@@ -123,20 +159,97 @@ class CreateKey(CreateView):
         self.object = api.keys.create(**data)
         return HttpResponseRedirect('/accounts/profile/')
 
-class GroupView(DetailView):
+@login_required
+def group_api(request, group=None):
+    """Handle listing groups and creating new ones"""
     
-    model = ProjectGroup
-    slug_field = 'name'
+    if request.method == 'GET':
+        groups = api.groups.list(user=request.user)
+        d = {'objects': [group.to_dict() for group in groups]}
+        return respond_json(d)
+    
+    elif request.method == "POST":
+        form = ProjectGroupForm(request.POST, user=request.user)
+        if form.is_valid():
+            try:
+                group = api.groups.create(user=request.user, **form.cleaned_data)
+            except DuplicateObject:
+                return respond_json({'errorMsg': "A group by that name exists already."})
+            except:
+                return respond_json({'errorMsg': "Unknown error"})
+            
+            return respond_json(group.to_dict())
+        return respond_json({'errorMsg': ajax_errors(form)})
+    
+    elif request.method == 'DELETE':
+        group = api.groups.get(group)
+        if not request.user.has_perm('delete', obj=group):
+            raise HttpResponseForbidden("You don't have permission to delete this group.")
+        
+        api.groups.delete(group)
+        return respond_json({'message': "group deleted"})
+    
+    raise HttpResponseNotAllowed()
 
-class ProjectView(DetailView):
+@login_required
+def key_api(request, key=None):
+    """Handle listing groups and creating new ones"""
     
-    model = Project
-    slug_field = 'name'
+    if request.method == "GET":
+        keys = api.keys.list(user=request.user)
+        d = {'objects': [k.to_dict() for k in keys]}
+        return respond_json(d)
     
-    def get_context_data(self, object, **kwargs):
-        kwargs.update({
-            'title': unicode(object),
-            'project': object,
+    elif request.method == "POST":
+        form = SSHKeyForm(request.POST, user=request.user)
+        if form.is_valid():
+            try:
+                key = api.keys.create_or_update(**form.cleaned_data)
+            except:
+                return respond_json({'errorMsg': "Unknown error"})
+            
+            return respond_json(key.to_dict())
+        return respond_json({'errorMsg': ajax_errors(form)})
+    
+    elif request.method == 'DELETE':
+        key = api.keys.get(key, user=request.user)
+        api.keys.delete(key)
+        return respond_json({'message': "key deleted"})
+    
+    raise HttpResponseNotAllowed()
+    
+@login_required
+def create_key(request):
+    if request.method == "POST":
+        pass
+
+@login_required
+def group_details(request, group):
+    group = api.groups.get(group)
+    if not request.user.has_perm('read', obj=group):
+        raise HttpResponseForbidden("You do not have access to this page.")
+    
+    return render_to_response('cannula/projectgroup_detail.html', 
+        RequestContext(request, {
+            'title': unicode(group),
+            'group': group,
             'now': datetime.datetime.now(),
-            'logs': api.log.list(project=object)})
-        return kwargs
+            'logs': api.log.list(group=group)
+        })
+    )
+
+@login_required
+def project_details(request, group, project):
+    group = api.groups.get(group)
+    project = api.projects.get(project)
+    if not request.user.has_perm('read', obj=group):
+        raise HttpResponseForbidden("You do not have access to this page.")
+    
+    return render_to_response('cannula/project_detail.html', 
+        RequestContext(request, {
+            'title': unicode(project),
+            'project': project,
+            'now': datetime.datetime.now(),
+            'logs': api.log.list(project=project)
+        })
+    )

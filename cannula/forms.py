@@ -6,18 +6,18 @@ from cannula.models import Project, ProjectGroup, Key
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        exclude = ['created_on']
+        exclude = ['created', 'group']
 
-    def __init__(self, *args, **kwargs):
-        """
-        Dynamically populate group choices.
-        """
-        self.user = kwargs.pop('user')
-        super(ProjectForm, self).__init__(*args, **kwargs)
-
-        groups = self.user.groupmembership_set.filter(add=True)
-        group_choices = [(g.group.id, g.group.name) for g in groups]
-        self.fields['group'].choices = group_choices
+#    def __init__(self, *args, **kwargs):
+#        """
+#        Dynamically populate group choices.
+#        """
+#        self.user = kwargs.pop('user')
+#        super(ProjectForm, self).__init__(*args, **kwargs)
+#
+#        groups = self.user.groupmembership_set.filter(add=True)
+#        group_choices = [(g.group.id, g.group.name) for g in groups]
+#        self.fields['group'].choices = group_choices
 
 class ProjectGroupForm(forms.ModelForm):
     class Meta:

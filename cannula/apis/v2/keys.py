@@ -15,6 +15,11 @@ class KeyAPI(BaseAPI):
     
     model = get_model('cannula', 'key')
     
+    def get(self, user, name):
+        user = api.users.get(user)
+        key = self.model.objects.get(user=user, name=name)
+        return key
+    
     def create_or_update(self, user, name, ssh_key):
         key, created = self.model.objects.get_or_create(user=user,
             name=name, defaults={'ssh_key':ssh_key})
