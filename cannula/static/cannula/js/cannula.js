@@ -48,15 +48,21 @@ var Project = function(obj, csrftoken) {
 
 var Key = function(obj, csrftoken) {
     jQuery.proxy(Model, this)(obj, csrftoken);
+    this.working = ko.observable(false);
     this.name = ko.observable(obj.name);
     this.key = ko.observable(obj.ssh_key);
     this.url = '/_api/keys/' + this.name();
-    this.editErrors = ko.observable();
+    this.errors = ko.observable();
     this.csrftoken = csrftoken;
     this.editFormVisible = ko.observable(false);
     
-    this.toggleForm = function() {
+    this.toggleEditForm = function() {
         this.editFormVisible(!this.editFormVisible());
+    };
+    
+    this.resetForm = function() {
+        this.editFormVisible(false);
+        this.errors('');
     };
     
     this.editOptions = function() {
@@ -77,9 +83,6 @@ var Key = function(obj, csrftoken) {
                 if(data.errorMsg) {
                     this.errors(data.errorMsg);
                 } else {
-                    var obj = new this.model(data, this.csrftoken);
-                    obj.onDelete = jQuery.proxy(this.itemDeleted, this);
-                    this.items.push(obj);
                     this.resetForm();
                 }
             }, this),
@@ -268,8 +271,8 @@ var KeyCollection = function(csrftoken) {
     this.newOptions = function () {
         return {
             name: this.newName(),
-            sshkey: this.newkey(),
-            csrfmiddlewaretoken: this.csrf_token
+            ssh_key: this.newKey(),
+            csrfmiddlewaretoken: this.csrftoken
         };
     };
     

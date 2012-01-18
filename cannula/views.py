@@ -201,19 +201,20 @@ def key_api(request, key=None):
         return respond_json(d)
     
     elif request.method == "POST":
-        form = SSHKeyForm(request.POST, user=request.user)
+        form = SSHKeyForm(request.POST)
         if form.is_valid():
             try:
-                key = api.keys.create_or_update(**form.cleaned_data)
+                key = api.keys.create_or_update(user=request.user, **form.cleaned_data)
             except:
+                logger.exception("Error saving key")
                 return respond_json({'errorMsg': "Unknown error"})
             
             return respond_json(key.to_dict())
         return respond_json({'errorMsg': ajax_errors(form)})
     
     elif request.method == 'DELETE':
-        key = api.keys.get(key, user=request.user)
-        api.keys.delete(key)
+        key = api.keys.get(request.user, key)
+        key.delete()
         return respond_json({'message': "key deleted"})
     
     raise HttpResponseNotAllowed()

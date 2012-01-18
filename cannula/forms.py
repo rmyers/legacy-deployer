@@ -1,7 +1,7 @@
 
 from django import forms
 
-from cannula.models import Project, ProjectGroup, Key
+from cannula.models import Project, ProjectGroup, Key, valid_key
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -31,12 +31,12 @@ class ProjectGroupForm(forms.ModelForm):
         self.user = kwargs.pop('user')
         super(ProjectGroupForm, self).__init__(*args, **kwargs)
 
-class SSHKeyForm(forms.ModelForm):
-    class Meta:
-        model = Key
-        exclude = ['user']
-    
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
-        super(SSHKeyForm, self).__init__(*args, **kwargs)
+class SSHKeyForm(forms.Form):
+    name = forms.CharField(required=True,
+        error_messages={'required': 'Please enter a name'}
+    )
+    ssh_key = forms.CharField(required=True,
+        error_messages={'required': 'Please enter a ssh key'},
+        validators=[valid_key],
+    )
     

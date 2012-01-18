@@ -23,9 +23,9 @@
             </div>
         </div>
         <div class="clearfix">
-            <label for="id_description">SSH Key:</label>
+            <label for="id_ssh_key">SSH Key:</label>
             <div class="input">
-                <textarea id="id_description" data-bind="value: newKey" rows="12" cols="60" name="description"></textarea>
+                <textarea id="id_ssh_key" data-bind="value: newKey" rows="12" cols="60" name="ssh_key"></textarea>
             </div>
         </div>
         <div class="actions">
@@ -40,11 +40,17 @@
     <pre>$ ssh-keygen</pre>
 </div>
 <ul data-bind="foreach: items">
-    <li><a href="#" data-bind="click: toggleForm, text: name"></a>
+    <li><a href="#" data-bind="click: toggleEditForm, text: name"></a>
+        <a href="#" class="error delete" data-bind="click: toggleForm">delete</a>
+        <div class="alert-message block-message error" data-bind="fadeVisible: formVisible">
+            <p>Are you sure you want to delete this key?</p>
+            <button class="btn error" data-bind="click: deleteObject">Delete</button>
+            <button class="btn" data-bind="click: toggleForm">Cancel</button>
+        </div>
         <form class='popup wide' data-bind="fadeVisible: editFormVisible">
             <fieldset>
                 <legend>Edit SSH Key</legend>
-                <div class="alert-message error" data-bind="visible: editErrors, html: editErrors"></div>
+                <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
                 <div class="clearfix">
                     <label for="id_name">Name:</label>
                     <div class="input">
@@ -59,7 +65,7 @@
                 </div>
                 <div class="actions">
                     <button data-bind="click: editObject" class='btn primary'>Update SSH Key</button>
-                    <a href="#" data-bind="click: toggleForm">Cancel</a>
+                    <a href="#" data-bind="click: toggleEditForm">Cancel</a>
                 </div>
             </fieldset>
         </form>
