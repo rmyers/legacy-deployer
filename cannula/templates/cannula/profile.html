@@ -16,18 +16,9 @@
     <fieldset>
         <legend>Create SSH Key</legend>
         <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
-        <div class="clearfix">
-            <label for="id_name">Name:</label>
-            <div class="input">
-                <input id="id_name" name='name' data-bind="value: newName" maxlength="100" /> 
-            </div>
-        </div>
-        <div class="clearfix">
-            <label for="id_ssh_key">SSH Key:</label>
-            <div class="input">
-                <textarea id="id_ssh_key" data-bind="value: newKey" rows="12" cols="60" name="ssh_key"></textarea>
-            </div>
-        </div>
+        {% for field in form %}
+        <div class="clearfix">{{ field.label_tag}}<div class="input">{{ field }}</div></div>
+        {% endfor %}
         <div class="actions">
             <button data-bind="click: addObject" class='btn primary'>Create SSH Key</button>
             <a href="#" data-bind="click: toggleForm">Cancel</a>
@@ -51,18 +42,9 @@
             <fieldset>
                 <legend>Edit SSH Key</legend>
                 <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
-                <div class="clearfix">
-                    <label for="id_name">Name:</label>
-                    <div class="input">
-                        <input id="id_name" name='name' data-bind="value: name" maxlength="100" /> 
-                    </div>
-                </div>
-                <div class="clearfix">
-                    <label for="id_ssh_key">SSH Key:</label>
-                    <div class="input">
-                        <textarea id="id_ssh_key" data-bind="value: key" rows="12" cols="60" name="ssh_key"></textarea>
-                    </div>
-                </div>
+                {% for field in form %}
+                <div class="clearfix">{{ field.label_tag}}<div class="input">{{ field }}</div></div>
+                {% endfor %}
                 <div class="actions">
                     <button data-bind="click: editObject" class='btn primary'>Update SSH Key</button>
                     <a href="#" data-bind="click: toggleEditForm">Cancel</a>

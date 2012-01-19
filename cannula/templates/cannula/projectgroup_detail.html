@@ -1,9 +1,33 @@
 {%  extends "cannula/base.html" %}
 
+{% block extrahead %}
+<script>
+    $(function() {
+        var projects = new ProjectCollection('{{group.name}}', '{{ csrf_token }}');
+        ko.applyBindings(projects);
+    });
+</script>
+{% endblock %}
+
 {% block content %}
-<p><a href="{% url cannula-create-group %}">Create Group</a></p>
-{% for group in groups %}
-<p>{{group}}</p>
-{% endfor %}
+<h3 id='groups'>Projects{% if user.is_superuser %} <a href="#" data-bind="click: toggleForm" class="btn">Add Project</a>{% endif %}</h3>
+<form class='popup wide' data-bind="fadeVisible: formVisible">
+    <fieldset>
+        <legend>Create Project</legend>
+        <div class="alert-message error" data-bind="visible: errors, html: errors"></div>
+        {% for field in form %}
+        <div class="clearfix">{{ field.label_tag}}<div class="input">{{ field }}</div></div>
+        {% endfor %}
+        <div class="actions">
+            <button data-bind="click: addObject" class='btn primary'>Create Project</button>
+            <a href="#" data-bind="click: resetForm">Cancel</a>
+        </div>
+    </fieldset>
+</form>
+
+<div class='projects' data-bind="foreach: items">
+    <h4><a href="#" data-bind='attr: {href: absolute_url}, text: name'></a></h4>
+    <p data-bind="text: description"></p>
+</div>
 
 {% endblock %}

@@ -1,42 +1,49 @@
 
 from django import forms
 
-from cannula.models import Project, ProjectGroup, Key, valid_key
+from cannula.models import valid_name, valid_key
 
-class ProjectForm(forms.ModelForm):
-    class Meta:
-        model = Project
-        exclude = ['created', 'group']
+class ProjectForm(forms.Form):
+    name = forms.CharField(required=True,
+        error_messages={'required': 'Please enter a name'},
+        validators=[valid_name],
+        widget=forms.TextInput(attrs={
+            'data-bind': 'value: name'
+        })
+    )
+    description = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={
+            'data-bind': 'value: description'
+        })
+    )
+    group = forms.CharField(label='', widget=forms.HiddenInput())
 
-#    def __init__(self, *args, **kwargs):
-#        """
-#        Dynamically populate group choices.
-#        """
-#        self.user = kwargs.pop('user')
-#        super(ProjectForm, self).__init__(*args, **kwargs)
-#
-#        groups = self.user.groupmembership_set.filter(add=True)
-#        group_choices = [(g.group.id, g.group.name) for g in groups]
-#        self.fields['group'].choices = group_choices
-
-class ProjectGroupForm(forms.ModelForm):
-    class Meta:
-        model = ProjectGroup
-        exclude = ['date_created', 'members']
-
-    def __init__(self, *args, **kwargs):
-        """
-        Dynamically populate group choices.
-        """
-        self.user = kwargs.pop('user')
-        super(ProjectGroupForm, self).__init__(*args, **kwargs)
+class ProjectGroupForm(forms.Form):
+    name = forms.CharField(required=True,
+        error_messages={'required': 'Please enter a name'},
+        validators=[valid_name],
+        widget=forms.TextInput(attrs={
+            'data-bind': 'value: name'
+        })
+    )
+    description = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={
+            'data-bind': 'value: description'
+        })
+    )
 
 class SSHKeyForm(forms.Form):
     name = forms.CharField(required=True,
-        error_messages={'required': 'Please enter a name'}
+        error_messages={'required': 'Please enter a name'},
+        widget=forms.TextInput(attrs={
+            'data-bind': 'value: name'
+        })
     )
     ssh_key = forms.CharField(required=True,
         error_messages={'required': 'Please enter a ssh key'},
         validators=[valid_key],
+        widget=forms.Textarea(attrs={
+            'data-bind': 'value: key'
+        })
     )
     

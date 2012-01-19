@@ -43,6 +43,7 @@ def profile(request):
         RequestContext(request, {
             'title': unicode(request.user),
             'keys': keys,
+            'form': SSHKeyForm(),
         })
     )
 
@@ -58,6 +59,7 @@ def index(request):
             # Flag to disable breadcrumbs
             'home_page': True,
             'now': datetime.datetime.now(),
+            'form': ProjectGroupForm(),
             'news': api.log.news(groups=groups),
         })
     )
@@ -169,7 +171,7 @@ def group_api(request, group=None):
         return respond_json(d)
     
     elif request.method == "POST":
-        form = ProjectGroupForm(request.POST, user=request.user)
+        form = ProjectGroupForm(request.POST)
         if form.is_valid():
             try:
                 group = api.groups.create(user=request.user, **form.cleaned_data)
@@ -188,6 +190,35 @@ def group_api(request, group=None):
         
         api.groups.delete(group)
         return respond_json({'message': "group deleted"})
+    
+    raise HttpResponseNotAllowed()
+
+@login_required
+def project_api(request, project=None):
+    """Handle listing groups and creating new ones"""
+    
+    if request.method == "GET":
+        group = request.GET.get('group')
+        projects = api.projects.list(group=group)
+        d = {'objects': [p.to_dict() for p in projects]}
+        return respond_json(d)
+    
+    elif request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            try:
+                project = api.projects.create(user=request.user, **form.cleaned_data)
+            except:
+                logger.exception("Error saving key")
+                return respond_json({'errorMsg': "Unknown error"})
+            
+            return respond_json(project.to_dict())
+        return respond_json({'errorMsg': ajax_errors(form)})
+    
+    elif request.method == 'DELETE':
+        project = api.projects.get(project)
+        project.delete()
+        return respond_json({'message': "project deleted"})
     
     raise HttpResponseNotAllowed()
 
@@ -218,11 +249,6 @@ def key_api(request, key=None):
         return respond_json({'message': "key deleted"})
     
     raise HttpResponseNotAllowed()
-    
-@login_required
-def create_key(request):
-    if request.method == "POST":
-        pass
 
 @login_required
 def group_details(request, group):
@@ -234,6 +260,7 @@ def group_details(request, group):
         RequestContext(request, {
             'title': unicode(group),
             'group': group,
+            'form': ProjectForm(),
             'now': datetime.datetime.now(),
             'logs': api.log.list(group=group)
         })

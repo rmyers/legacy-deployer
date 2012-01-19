@@ -37,10 +37,11 @@ class ProjectAPI(BaseAPI):
     def get(self, projectname):
         return self._get(projectname)
     
-    def _list(self, user=None, group=None):
+    def list(self, user=None, group=None):
         # TODO: handle user arg?
         if group:
-            return group.project_set.all()
+            group = api.groups.get(group)
+            return group.projects
         return self.model.objects.all()
     
     

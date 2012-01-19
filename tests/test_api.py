@@ -5,7 +5,7 @@ class TestAPI(CannulaTestCase):
     
     
     def test_projects(self):
-        from cannula.api import PermissionError
+        from cannula.apis import PermissionError
         g1 = self.api.groups.create('testy', 'abby')
         p1 = self.api.projects.create('test', user='abby', group=g1)
         self.assertRaises(PermissionError, self.api.projects.create, 'test2', user='jim', group='testy')
@@ -20,7 +20,7 @@ class TestAPI(CannulaTestCase):
         self.api.projects.delete(p1, 'abby')
         
     def test_groups(self):
-        from cannula.api import PermissionError, DuplicateObject
+        from cannula.apis import PermissionError, DuplicateObject
         g1 = self.api.groups.create('test', 'abby')
         self.assertRaises(PermissionError, self.api.groups.create, 'test', 'jim')
         self.assertEqual(g1.get_absolute_url(), '/test/')
@@ -28,7 +28,7 @@ class TestAPI(CannulaTestCase):
         
     
     def test_users(self):
-        from cannula.api import DuplicateObject
+        from cannula.apis import DuplicateObject
         self.assertRaises(DuplicateObject, self.api.users.create, 'jim')
         ted = self.api.users.create('ted', password='lkjh')
         
@@ -41,7 +41,7 @@ class TestAPI(CannulaTestCase):
         self.assertEqual(unicode(jim), 'Jim User')
     
     def test_permissions(self):
-        from cannula.api import PermissionError
+        from cannula.apis import PermissionError
         g1 = self.api.groups.create('test', 'abby')
         self.assertRaises(PermissionError, self.api.groups.delete, g1, 'jim')
     

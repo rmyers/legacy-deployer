@@ -194,8 +194,8 @@ var Collection = function(csrftoken) {
 var GroupCollection = function(csrftoken) {
     jQuery.proxy(Collection, this)(csrftoken);
     this.url = '/_api/groups/';
-    this.newName = ko.observable('');
-    this.newDescription = ko.observable('');
+    this.name = ko.observable('');
+    this.description = ko.observable('');
     this.errors = ko.observable();
     this.formVisible = ko.observable(false);
     this.model = Group;
@@ -203,14 +203,14 @@ var GroupCollection = function(csrftoken) {
     this.newOptions = function () {
         return {
             csrfmiddlewaretoken: this.csrftoken,
-            name: this.newName(),
-            description: this.newDescription() 
+            name: this.name(),
+            description: this.description() 
         };
     };
 
     this.resetForm = function() {
-        this.newName('');
-        this.newDescription('');
+        this.name('');
+        this.description('');
         this.formVisible(false);
         this.errors('');
     };
@@ -226,26 +226,26 @@ var GroupCollection = function(csrftoken) {
 
 var ProjectCollection = function(groupName, csrftoken) {
     jQuery.proxy(Collection, this)(csrftoken);
-    this.url = '/api/projects/';
+    this.url = '/_api/projects/';
     this.options = {group: groupName};
-    this.newName = ko.observable('');
-    this.newDescription = ko.observable('');
+    this.name = ko.observable('');
+    this.description = ko.observable('');
     this.errors = ko.observable();
     this.formVisible = ko.observable(false);
     this.model = Project;
     
     this.newOptions = function () {
         return {
-            name: this.newName(),
-            description: this.newDescription(),
+            name: this.name(),
+            description: this.description(),
             group: groupName,
             csrfmiddlewaretoken: this.csrftoken
         };
     };
     
     this.resetForm = function() {
-        this.newName('');
-        this.newDescription('');
+        this.name('');
+        this.description('');
         this.formVisible(false);
         this.errors('');
     };
@@ -262,23 +262,23 @@ var ProjectCollection = function(groupName, csrftoken) {
 var KeyCollection = function(csrftoken) {
     jQuery.proxy(Collection, this)(csrftoken);
     this.url = '/_api/keys/';
-    this.newName = ko.observable('');
-    this.newKey = ko.observable('');
+    this.name = ko.observable('');
+    this.key = ko.observable('');
     this.errors = ko.observable();
     this.formVisible = ko.observable(false);
     this.model = Key;
     
     this.newOptions = function () {
         return {
-            name: this.newName(),
-            ssh_key: this.newKey(),
+            name: this.name(),
+            ssh_key: this.key(),
             csrfmiddlewaretoken: this.csrftoken
         };
     };
     
     this.resetForm = function() {
-        this.newName('');
-        this.newKey('');
+        this.name('');
+        this.key('');
         this.formVisible(false);
         this.errors('');
     };

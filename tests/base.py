@@ -34,11 +34,10 @@ class CannulaTestCase(unittest.TestCase):
                 if key.startswith('cannula'):
                     del sys.modules[key]
                     
-            from cannula.conf import CANNULA_BASE, supervisor, proxy
+            from cannula.conf import CANNULA_BASE
             from cannula.api import api
             self.assertEqual(CANNULA_BASE, self.base_dir)
             self.api = api
-            self.proc = supervisor
             
             # create an admin user
             self.api.users.create('abby', password="lkjh", email='abby@cannula.com',
@@ -53,14 +52,14 @@ class CannulaTestCase(unittest.TestCase):
             shell(Git.commit % 'initial commit', cwd=self.dummy_project)
             
             # Write out base supervisor and proxy configs
-            self.proc.write_main_conf(commit=True)
-            proxy.write_main_conf(commit=True)
-            self.proc.startup()
+            self.api.proc.write_main_conf(commit=True)
+            self.api.proxy.write_main_conf(commit=True)
+            self.api.proc.startup()
         except:
             logging.exception('Setup Failed')
             shutil.rmtree(self.base_dir)
             self.fail("Problem setting up testcase")
     
     def tearDown(self):
-        self.proc.shutdown()
+        self.api.proc.shutdown()
         shutil.rmtree(self.base_dir)
