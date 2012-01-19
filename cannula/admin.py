@@ -1,18 +1,19 @@
 from django.contrib import admin
-from django.contrib.auth.models import Permission
 
-from cannula.models import *
+from cannula import models
 
-admin.site.register(Key)
-admin.site.register(Project)
-admin.site.register(Permission)
+# TODO: spice these up a bit
+admin.site.register(models.Key)
+admin.site.register(models.Project)
+admin.site.register(models.Deployment)
+admin.site.register(models.Log)
 
 class GroupMembershipInline(admin.TabularInline):
-    model = GroupMembership
+    model = models.GroupMembership
     exclude = ('date_joined',)
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ['name', 'date_created']
     inlines = [GroupMembershipInline]
     search_fields = ['name']
-admin.site.register(ProjectGroup, GroupAdmin)
+admin.site.register(models.ProjectGroup, GroupAdmin)

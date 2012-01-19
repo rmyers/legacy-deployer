@@ -1,21 +1,16 @@
-from django.conf.urls.defaults import url, patterns
-from django.contrib.auth.decorators import login_required
+from django.conf.urls.defaults import url, patterns, include
+from django.contrib import admin
 from django.conf import settings
 
-from cannula.views import CreateProject, CreateGroup, CreateKey
+admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', 'cannula.views.index', name='cannula-index'),
     (r'^accounts/login/$', 'django.contrib.auth.views.login', 
         {'template_name': 'cannula/form.html'}),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout',
         {'template_name': 'cannula/logged_out.html'}),
-    (r'^accounts/profile/$', 'cannula.views.profile'),
-    url(r'^create/group/$', login_required(CreateGroup.as_view()), 
-        name='cannula-create-group'),
-    url(r'^create/key/$', login_required(CreateKey.as_view()), 
-        name='create-key'),
-    
+     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    (r'^admin/', include(admin.site.urls)),
 )
 
 if settings.DEBUG:
@@ -30,6 +25,7 @@ if settings.DEBUG:
     )
     
 urlpatterns += patterns('cannula.views',
+    url(r'^$', 'index', name='cannula-index'),
     url(r'^_api/groups/(?P<group>[^/]+)?', 'group_api', name='group-api'),
     url(r'^_api/keys/(?P<key>[^/]+)?', 'key_api', name='key-api'),
     url(r'^_api/projects/(?P<project>[^/]+)?', 'project_api', name='project-api'),
