@@ -47,6 +47,7 @@ def initialize(user, repo):
     group, project = repo.split('/')
     if '.' not in project:
         sys.exit("Invalid repo: %s" % repo)
+    project, _ = repo.split('.')
     
     from cannula.api import api
     try:
