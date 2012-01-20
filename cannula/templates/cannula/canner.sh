@@ -61,8 +61,8 @@ case $CMD in
         ;;
         
     "git-receive-pack")
-        # Check permissions to repo
-        REPO=`echo $SSH_ORIGINAL_COMMAND | awk '{print $2}'`
+        # Check permissions to repo and strip off any quote chars added by git.
+        REPO=`echo $SSH_ORIGINAL_COMMAND | awk '{print $2}'|sed "s/^\([\"']\)\(.*\)\1\$/\2/g"`
         $CANNULA_CMD $C_USER has_perm read --repo=$REPO
         if [[ ! $? == 0 ]]
         then 
@@ -70,7 +70,7 @@ case $CMD in
             exit 1
         fi
         
-        if [[ ! -e $CANNULA_ROOT/$REPO ]]
+        if [[ ! -e $CANNULA_ROOT/repos/$REPO ]]
         then 
             # initialize the project
             $CANNULA_CMD $C_USER initialize --repo=$REPO
