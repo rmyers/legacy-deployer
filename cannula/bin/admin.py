@@ -65,6 +65,8 @@ def main():
         parser.error("incorrect number of arguments")
     if options.settings:
         os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
+    else:
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'cannula.settings'
         
     user = args[0]
     command = args[1]
