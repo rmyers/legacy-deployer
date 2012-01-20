@@ -44,10 +44,10 @@ def initialize(user, repo):
     """Initialize the git repo for this project."""
     if '/' not in repo:
         sys.exit("Invalid repo: %s" % repo)
-    group, project = repo.split('/')
+    _, project = repo.split('/')
     if '.' not in project:
         sys.exit("Invalid repo: %s" % repo)
-    project, _ = repo.split('.')
+    project, _ = project.split('.')
     
     from cannula.api import api
     try:
