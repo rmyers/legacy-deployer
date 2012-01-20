@@ -48,8 +48,8 @@ def has_perm(user, perm, group=None, project=None, repo=None):
     from cannula.api import api
     if repo is not None:
         # TODO: make this better
-        group = repo.split('/')[0]
-    if api.permissions.has_perm(user, perm, group, project):
+        project = repo.split('.')[0]
+    if api.permissions.has_perm(user, perm, project=project, group=group):
         return True
     sys.exit("Access Denied!")
 
