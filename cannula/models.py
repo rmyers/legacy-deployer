@@ -136,7 +136,7 @@ class Project(models.Model):
     def repo_dir(self):
         """Remote repo directory, this is where projects are pushed to."""
         directory = '%s/%s.git' % (self.group.name, self.name)
-        return os.path.join(conf.CANNULA_BASE, directory)
+        return os.path.join(conf.CANNULA_BASE, 'repos', directory)
     
     @property
     def project_dir(self):
@@ -144,7 +144,7 @@ class Project(models.Model):
         out here after a push.
         """
         directory = '%s/%s' % (self.group.name, self.name)
-        return os.path.join(conf.CANNULA_BASE, directory)
+        return os.path.join(conf.CANNULA_BASE, 'repos', directory)
     
     @property
     def conf_dir(self):
