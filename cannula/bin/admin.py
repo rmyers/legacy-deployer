@@ -55,7 +55,9 @@ def initialize(user, repo):
     except Exception, e:
         sys.exit("Error initializing project: %s" % e)
     return True
-    
+
+def deploy(user, repo):
+    return True
 
 def has_perm(user, perm, group=None, project=None, repo=None):
     """
@@ -109,6 +111,9 @@ def main():
     
     elif command == 'initialize':
         return initialize(user=user, repo=options.repo)
+    
+    elif command == 'deploy':
+        return deploy(user=user, repo=options.repo)
     
     elif command == 'has_perm':
         # user has_perm perm --project=project --group=group
