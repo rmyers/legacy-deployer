@@ -63,7 +63,7 @@ case $CMD in
     "git-receive-pack")
         # Check permissions to repo
         REPO=`echo $SSH_ORIGINAL_COMMAND | awk '{print $2}'`
-        $CANNULA_CMD $C_USER has_perm deploy --repo=$REPO
+        $CANNULA_CMD $C_USER has_perm read --repo=$REPO
         if [[ ! $? == 0 ]]
         then 
             echo "Access denied!"
@@ -77,7 +77,7 @@ case $CMD in
         fi
         
         # Do the push and deploy
-        $CMD $CANNULA_ROOT/$REPO
+        $CMD $CANNULA_ROOT/repos/$REPO
         if [[ ! $? == 0 ]]
         then 
             echo "Push failed, please reset project!"

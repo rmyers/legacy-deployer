@@ -40,6 +40,22 @@ def create_group(user, name, description):
     from cannula.api import api
     return api.groups.create(name, user, description)
 
+def initialize(user, repo):
+    """Initialize the git repo for this project."""
+    if '/' not in repo:
+        sys.exit("Invalid repo: %s" % repo)
+    group, project = repo.split('/')
+    if '.' not in project:
+        sys.exit("Invalid repo: %s" % repo)
+    
+    from cannula.api import api
+    try:
+        api.projects.initialize(project, user)
+    except Exception, e:
+        sys.exit("Error initializing project: %s" % e)
+    return True
+    
+
 def has_perm(user, perm, group=None, project=None, repo=None):
     """
     Check that a user has a certain permission. 
@@ -48,7 +64,7 @@ def has_perm(user, perm, group=None, project=None, repo=None):
     from cannula.api import api
     if repo is not None:
         # TODO: make this better
-        project = repo.split('.')[0]
+        group = repo.split('/')[0]
     if api.permissions.has_perm(user, perm, project=project, group=group):
         return True
     sys.exit("Access Denied!")
@@ -89,6 +105,9 @@ def main():
         if len(args) > 4:
             description = args[3]
         return create_group(user, groupname, description)
+    
+    elif command == 'initialize':
+        return initialize(user=user, repo=options.repo)
     
     elif command == 'has_perm':
         # user has_perm perm --project=project --group=group
