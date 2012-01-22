@@ -7,18 +7,13 @@ setup(
     name = 'cannula',
     version = version,
     install_requires = [
-        'django >= 1.3.1',
-        #'fabric >= 1.0.0',
+        'django >= 1.2.3',
         'virtualenv >= 1.5.1',
-        #'celery',
-        #'django-kombu',
-        #'django-celery',
-        #'jinja2',
     ],
     entry_points = {
         'console_scripts': [
             'cannula-admin = cannula.bin.admin:main',
-            'cannula-cron = cannula.bin.cron:main',
+            'cannulactl = cannula.bin.control:main',
         ]
     },
     url = 'http://bitbucket.org/rmyers/cannula/',

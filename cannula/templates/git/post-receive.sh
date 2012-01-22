@@ -12,13 +12,24 @@
 
 checkout()
 {
-    revision=$(git rev-parse $1)
+    newrev=$(git rev-parse $1)
+    oldrev=$(git rev-parse $2)
     
-    git-checkout -f $revision &> /dev/null
+    git-checkout -f $newrev &> /dev/null
     
     if [ $? == 0 ]
     then
-        echo "Checked out revision $revision"
+        echo "Checked out revision $newrev"
+        echo "Deploying new version"
+        $CANNULA_CMD $C_USER deploy --oldrev=$oldrev --newrev=$newrev --repo=$REPO
+        if [ $? == 0 ]
+        then 
+            echo "Success!"
+        else
+            echo "Reverting failed deploy"
+            git-checkout -f $oldrev
+            $CANNULA_CMD $C_USER deploy --repo=$REPO
+        fi
     else
         echo "Checkout failed, please reset project"
     fi

@@ -1,7 +1,5 @@
-flask
-passlib
+django>=1.2.3
 virtualenv>=1.5.1
-jinja2
 
 # The cannula project itself
 -e git://github.com/rmyers/cannula.git#egg=cannula
