@@ -40,6 +40,9 @@ def main():
         # Write out autorized_keys file
         return keys()
     
+    if command == 'initialize':
+        return initialize()
+    
     else:
         parser.error("command not found!")
 

@@ -1,26 +1,53 @@
 
 import os
-CURRENT_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 
-CANNULA_BASE = '/tmp/cannula'
+from cannula.conf import config
 
-DEBUG = True
+# Cannula settings
+CANNULA_MODULE_DIR = os.path.abspath(os.path.dirname(__file__))
+CANNULA_BASE = config.get('cannula', 'base')
+
+# Proxy client, default options are:
+CANNULA_PROXY_NEEDS_SUDO = config.getboolean('proxy', 'needs_sudo')
+
+# Process Supervisor Settings
+CANNULA_SUPERVISOR_USE_INET = config.getboolean('proc', 'use_inet')
+CANNULA_SUPERVISOR_INET_PORT = config.get('proc', 'inet_port')
+CANNULA_SUPERVISOR_USER = config.get('proc', 'user')
+CANNULA_SUPERVISOR_PASSWORD = config.get('proc', 'password')
+CANNULA_SUPERVISOR_MANAGES_PROXY = config.getboolean('proc', 'manages_proxy')
+
+# Path to 'git' command
+CANNULA_GIT_CMD = config.get('cannula', 'git_cmd') #reese
+
+# Path to cannulactl command
+CANNULA_CMD = config.get('cannula', 'cmd')
+# Path to canner.sh bash script 
+CANNULA_SSH_COMMAND = config.get('cannula', 'ssh_cmd')
+
+# API classes you can override a single one in django settings
+# this dictionary will be updated with the user defined one.
+CANNULA_API = dict(config.items('api'))
+
+# Lock timeout in seconds
+CANNULA_LOCK_TIMEOUT = config.getint('cannula', 'lock_timeout')
+
+
+DEBUG = config.getboolean('django', 'debug')
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
+ADMINS = config.items('djangoadmins')
 
 MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(CURRENT_DIR, 'cannula.db'),                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': config.get('database', 'engine'), 
+        'NAME': config.get('database', 'name'),                      # Or path to database file if using sqlite3.
+        'USER': config.get('database', 'user'),                      # Not used with sqlite3.
+        'PASSWORD': config.get('database', 'password'),                  # Not used with sqlite3.
+        'HOST': config.get('database', 'host'),                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': config.get('database', 'port'),                      # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -31,40 +58,39 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = config.get('django', 'time_zone')
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = config.get('django', 'language_code')
 
-SITE_ID = 1
+SITE_ID = config.getint('django', 'site_id')
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = config.getboolean('django', 'use_i18n')
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale
-USE_L10N = True
+USE_L10N = config.getboolean('django', 'use_l10n')
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/"
-import cannula
 
-MEDIA_ROOT = cannula.CANNULA_MEDIA_ROOT
+MEDIA_ROOT = os.path.join(CANNULA_MODULE_DIR, 'static')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/static/'
+MEDIA_URL = config.get('django', 'media_url')
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = config.get('django', 'admin_media_prefix')
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '1=v42myoal7cbi))h2&ngo8hpxj9&+-w9vh9_o&n))210iqz)i'
+SECRET_KEY = config.get('django', 'secret_key')
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -82,11 +108,12 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'cannula.urls'
 
-TEMPLATE_DIRS = (
+TEMPLATE_DIRS = [
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-)
+    config.get('cannula', 'template_dir')
+]
 
 INSTALLED_APPS = (
     'django.contrib.auth',

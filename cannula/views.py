@@ -18,8 +18,10 @@ except ImportError: # pragma: nocover
     from django.utils import simplejson as json
 
 from cannula.models import Project, Key, ProjectGroup
-from cannula.forms import ProjectForm, ProjectGroupForm, SSHKeyForm
+from cannula.forms import ProjectForm, ProjectGroupForm, SSHKeyForm,\
+    SettingsForm
 from cannula.api import api
+from cannula.conf import conf_dict, write_config
 
 
 logger = getLogger('cannula.views')
@@ -279,5 +281,25 @@ def project_details(request, group, project):
             'project': project,
             'now': datetime.datetime.now(),
             'logs': api.log.list(project=project)
+        })
+    )
+
+@login_required
+def manage_settings(request):
+    if not request.user.is_superuser:
+        raise HttpResponseForbidden("You do not have access to this page.")
+    
+    if request.method == "POST":
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            write_config(form.cleaned_data)
+            return HttpResponseRedirect('/')
+    else:
+        form = SettingsForm(initial=conf_dict())
+    
+    return render_to_response('cannula/form.html',
+        RequestContext(request, {
+            'form': form,
+            'title': "Edit Settings",
         })
     )

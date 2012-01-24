@@ -1,6 +1,7 @@
 
+from django.conf import settings
+
 from cannula.utils import import_object
-from cannula.conf import CANNULA_API
 
 class LazyAPI(object):
     
@@ -17,16 +18,15 @@ class LazyAPI(object):
 class API:
     
     #clusters = LazyAPI(CANNULA_API['clusters'])
-    deploy = LazyAPI(CANNULA_API['deploy'])
-    groups = LazyAPI(CANNULA_API['groups'])
-    keys = LazyAPI(CANNULA_API['keys'])
-    log = LazyAPI(CANNULA_API['log'])
-    permissions = LazyAPI(CANNULA_API['permissions'])
-    proc = LazyAPI(CANNULA_API['proc'])
-    projects = LazyAPI(CANNULA_API['projects'])
-    proxy = LazyAPI(CANNULA_API['proxy'])
+    deploy = LazyAPI(settings.CANNULA_API['deploy'])
+    groups = LazyAPI(settings.CANNULA_API['groups'])
+    keys = LazyAPI(settings.CANNULA_API['keys'])
+    log = LazyAPI(settings.CANNULA_API['log'])
+    permissions = LazyAPI(settings.CANNULA_API['permissions'])
+    proc = LazyAPI(settings.CANNULA_API['proc'])
+    projects = LazyAPI(settings.CANNULA_API['projects'])
+    proxy = LazyAPI(settings.CANNULA_API['proxy'])
     #servers = LazyAPI(CANNULA_API['servers'])
-    users = LazyAPI(CANNULA_API['users'])
-    #unix_ids = LazyAPI(CANNULA_API['unix_ids'])
+    users = LazyAPI(settings.CANNULA_API['users'])
 
 api = API()
