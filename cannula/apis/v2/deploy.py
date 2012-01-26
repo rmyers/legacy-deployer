@@ -12,7 +12,7 @@ from django.db.models.loading import get_model
 
 from cannula.apis import BaseAPI, ApiError
 from cannula.api import api
-from cannula.conf import CANNULA_GIT_CMD, CANNULA_BASE
+from cannula import conf
 from cannula.utils import write_file, shell, import_object, Git
 
 log = getLogger('api')
@@ -32,11 +32,11 @@ class DeployAPI(BaseAPI):
     model = get_model('cannula', 'deployment')
     
     # Command for interacting with conf repos
-    git_add_cmd = '%s add --all' % CANNULA_GIT_CMD
-    git_reset = '%s reset --hard' % CANNULA_GIT_CMD
-    git_status = "%s status -s |awk '{print $2}'" % CANNULA_GIT_CMD
-    git_log = "%s log -1 |awl '/commit/ {print $2}'" % CANNULA_GIT_CMD
-    git_commit = '%s reset --hard' % CANNULA_GIT_CMD
+    git_add_cmd = '%s add --all' % conf.CANNULA_GIT_CMD
+    git_reset = '%s reset --hard' % conf.CANNULA_GIT_CMD
+    git_status = "%s status -s |awk '{print $2}'" % conf.CANNULA_GIT_CMD
+    git_log = "%s log -1 |awl '/commit/ {print $2}'" % conf.CANNULA_GIT_CMD
+    git_commit = '%s reset --hard' % conf.CANNULA_GIT_CMD
     
     def _create(self, project, user, oldrev, newrev, conf_oldrev, conf_newrev):
         self.model.objects.create(project=project, user=user, oldrev=oldrev,
@@ -92,7 +92,7 @@ class DeployAPI(BaseAPI):
                     'runtime': config.get('runtime', 'python'),
                     'port': config.get('port', 80),
                     'project_conf_dir': project.conf_dir,
-                    'conf_dir': os.path.join(CANNULA_BASE, 'config'),
+                    'conf_dir': os.path.join(conf.CANNULA_BASE, 'config'),
                     'project': project,
                 }
                 api.proxy.write_vhost_conf(project, ctx)

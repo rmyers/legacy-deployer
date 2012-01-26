@@ -35,7 +35,7 @@ class PermissionAPI(BaseAPI):
             if isinstance(obj, self.project):
                 group = obj.group
             elif isinstance(obj, self.group):
-                group = object
+                group = obj
             else:
                 # We do not handle anything else
                 return False

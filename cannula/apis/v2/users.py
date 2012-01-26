@@ -18,7 +18,13 @@ class UserAPI(BaseAPI):
     def _create(self, username, **kwargs):
         email = kwargs.get('email', '%s@localhost.com' % username)
         password = kwargs.get('password', '!')
+        admin = kwargs.get('is_admin', False)
         new_user = self.model.objects.create_user(username, email, password)
+        if admin:
+            new_user.is_superuser = True
+        new_user.first_name = kwargs.get('first_name', '')
+        new_user.last_name = kwargs.get('last_name', '')
+        new_user.save()
         self.update(new_user)
         return new_user
     

@@ -7,9 +7,7 @@ from supervisor.xmlrpc import SupervisorTransport
 
 from django.template.loader import render_to_string
 
-from cannula.conf import (CANNULA_BASE, CANNULA_SUPERVISOR_INET_PORT, 
-    CANNULA_SUPERVISOR_USE_INET, CANNULA_SUPERVISOR_USER,
-    CANNULA_SUPERVISOR_PASSWORD, CANNULA_SUPERVISOR_MANAGES_PROXY)
+from cannula import conf
 from cannula.utils import shell, Git, write_file
 from cannula.api import api
 from cannula.apis import Configurable
@@ -29,19 +27,22 @@ class Supervisord(Configurable):
     
     
     def __init__(self):
-        self.base = CANNULA_BASE
+        self.base = conf.CANNULA_BASE
         self.supervisor_base = os.path.join(self.base, 'supervisor')
         self.socket_path = os.path.join(self.base, 'supervisor.sock')
         self.pid_file = os.path.join(self.base, 'supervisor.pid')
         self.socket = 'unix://%s' % self.socket_path
-        self.username = CANNULA_SUPERVISOR_USER
-        self.password = CANNULA_SUPERVISOR_PASSWORD
-        self.use_inet = CANNULA_SUPERVISOR_USE_INET
-        self.inet_port = CANNULA_SUPERVISOR_INET_PORT
-        self.manages_proxy = CANNULA_SUPERVISOR_MANAGES_PROXY
+        self.username = conf.CANNULA_SUPERVISOR_USER
+        self.password = conf.CANNULA_SUPERVISOR_PASSWORD
+        self.use_inet = conf.CANNULA_SUPERVISOR_USE_INET
+        self.inet_port = conf.CANNULA_SUPERVISOR_INET_PORT
+        self.manages_proxy = conf.CANNULA_SUPERVISOR_MANAGES_PROXY
         self.proxy = api.proxy if self.manages_proxy else None
         self.serverurl = self.inet_port if self.use_inet else self.socket
         self.context = {
+            'cmd': self.cmd,
+            'ctl_cmd': self.ctl_cmd,
+            'main_conf': self.main_conf,
             'cannula_base': self.base,
             'inet_port': self.inet_port,
             'serverurl': self.serverurl,
@@ -87,12 +88,12 @@ class Supervisord(Configurable):
                 raise
     
     def startup(self):
-        status, output = shell('%(cmd)s -c %(main_conf)s' % self.__dict__)
+        status, output = shell('%(cmd)s -c %(main_conf)s' % self.context)
         if status > 0:
             raise Exception(output)
         
     def shutdown(self):
-        status, output = shell('%(ctl_cmd)s -c %(main_conf)s shutdown' % self.__dict__)
+        status, output = shell('%(ctl_cmd)s -c %(main_conf)s shutdown' % self.context)
         if status > 0:
             logging.error(output)
     

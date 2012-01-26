@@ -26,6 +26,7 @@ class KeyAPI(BaseAPI):
         if not created:
             log.info("Updating key: %s for user: %s", name, user)
             key.ssh_key = ssh_key
+            key.save()
         else:
             log.info("Created key: %s for user: %s", name, user)
         return key

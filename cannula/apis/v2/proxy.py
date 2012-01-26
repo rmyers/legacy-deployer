@@ -21,8 +21,7 @@ templates. The templates are arranged like this::
 import os
 import posixpath
 
-from cannula.conf import CANNULA_BASE, CANNULA_SUPERVISOR_MANAGES_PROXY, CANNULA_PROXY_NEEDS_SUDO,\
-    CANNULA_PROXY_CMD
+from cannula import conf
 from cannula.utils import shell, write_file
 
 from cannula.api import api
@@ -38,17 +37,17 @@ class Proxy(Configurable):
     restart_cmd = 'echo "Proxy did not define restart_cmd"'
     
     def __init__(self, template_base='proxy'):
-        self.cmd = CANNULA_PROXY_CMD
-        self.proxy_base = os.path.join(CANNULA_BASE, 'proxy')
-        self.vhost_base = os.path.join(CANNULA_BASE, 'config')
-        if CANNULA_PROXY_NEEDS_SUDO:
+        self.cmd = conf.CANNULA_PROXY_CMD
+        self.proxy_base = os.path.join(conf.CANNULA_BASE, 'proxy')
+        self.vhost_base = os.path.join(conf.CANNULA_BASE, 'config')
+        if conf.CANNULA_PROXY_NEEDS_SUDO:
             self.cmd = 'sudo %s' % self.cmd
-        self.supervisor_managed = CANNULA_SUPERVISOR_MANAGES_PROXY
+        self.supervisor_managed = conf.CANNULA_SUPERVISOR_MANAGES_PROXY
         self.context = {
             'cmd': self.cmd,
             'main_conf': self.main_conf,
             'proxy_base': self.proxy_base,
-            'cannula_base': CANNULA_BASE,
+            'cannula_base': conf.CANNULA_BASE,
             'vhost_base': self.vhost_base,
             'supervisor_managed': self.supervisor_managed,
         }
