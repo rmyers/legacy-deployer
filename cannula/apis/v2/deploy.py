@@ -20,9 +20,10 @@ log = getLogger('api')
 class Handler(object):
     """Simple object to hold properties for wsgi handlers"""
     
-    def __init__(self, name, worker='', **kwargs):
+    def __init__(self, name, project, worker='', **kwargs):
         self._worker_klass = import_object(worker)
-        self._worker_obj = self._worker_klass(name, **kwargs)
+        self._project = api.projects.get(project)
+        self._worker_obj = self._worker_klass(name, self._project, **kwargs)
     
     def __getattr__(self, attr):
         return getattr(self._worker_obj, attr)
