@@ -14,3 +14,9 @@ class CannulaBackend(ModelBackend):
             return super(CannulaBackend, self).has_perm(user_obj, perm)
         
         return api.permissions.has_perm(user_obj, perm, obj=obj)
+    
+    def get_all_permissions(self, user_obj, obj=None):
+        return super(CannulaBackend, self).get_all_permissions(user_obj)
+    
+    def get_group_permissions(self, user_obj, obj=None):
+        return super(CannulaBackend, self).get_group_permissions(user_obj)

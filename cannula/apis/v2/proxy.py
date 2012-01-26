@@ -45,6 +45,8 @@ class Proxy(Configurable):
             self.cmd = 'sudo %s' % self.cmd
         self.supervisor_managed = CANNULA_SUPERVISOR_MANAGES_PROXY
         self.context = {
+            'cmd': self.cmd,
+            'main_conf': self.main_conf,
             'proxy_base': self.proxy_base,
             'cannula_base': CANNULA_BASE,
             'vhost_base': self.vhost_base,
@@ -53,7 +55,7 @@ class Proxy(Configurable):
     
     @property
     def manual_start_cmd(self):
-        return self.start_cmd % self.__dict__
+        return self.start_cmd % self.context
     
     def start(self):
         """Start the proxy service."""
@@ -61,7 +63,7 @@ class Proxy(Configurable):
             return api.proc.start('proxy-server')
         
         # Else start the proxy manually
-        code, output = shell(self.start_cmd % self.__dict__)
+        code, output = shell(self.start_cmd % self.context)
         if code != 0:
             raise Exception(output)
     
@@ -71,7 +73,7 @@ class Proxy(Configurable):
             return api.proc.stop('proxy-server')
         
         # Else stop the proxy manually
-        code, output = shell(self.stop_cmd % self.__dict__)
+        code, output = shell(self.stop_cmd % self.context)
         if code != 0:
             raise Exception(output)
         
@@ -81,7 +83,7 @@ class Proxy(Configurable):
             return api.proc.restart('proxy-server')
         
         # Else restart the proxy manually
-        code, output = shell(self.restart_cmd % self.__dict__)
+        code, output = shell(self.restart_cmd % self.context)
         if code != 0:
             raise Exception(output)
         
