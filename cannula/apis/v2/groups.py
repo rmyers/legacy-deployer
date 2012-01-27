@@ -59,3 +59,11 @@ class GroupAPI(BaseAPI):
         those that the user has the given permission to.
         """
         return self._list(user=user, perm=perm, **kwargs)
+    
+    def delete(self, group, user):
+        group = self.get(group)
+        user = api.users.get(user)
+        if not user.has_perm('delete', obj=group):
+            raise PermissionError("You do not have permission to delete this group")
+        
+        group.delete()

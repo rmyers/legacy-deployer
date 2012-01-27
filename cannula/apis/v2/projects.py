@@ -140,3 +140,11 @@ class ProjectAPI(BaseAPI):
         
         log.info("Project %s initialized", project)
         api.log.create("Project %s initialized" % project, user=user, group=project.group, project=project)
+    
+    def delete(self, project, user):
+        project = self.get(project)
+        user = api.users.get(user)
+        if not user.has_perm('delete', obj=project):
+            raise PermissionError("You do not have permission to delete this project")
+        
+        project.delete()
