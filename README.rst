@@ -7,7 +7,7 @@ This is the basis of the client and server tools written in django to deploy
 applications to a production environment. It uses a remote git server to 
 handle all deploying. This makes deploying as simple as::
 	
-	$ git push cannula
+	$ git push cannula master
 
 Requirements
 ~~~~~~~~~~~~
