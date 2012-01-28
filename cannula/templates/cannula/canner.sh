@@ -39,7 +39,7 @@ export CANNULA_ROOT={{ cannula_root }}
 
 # This needs to be globally available
 # This is the settings file of the actual project running cannula
-export DJANGO_SETTINGS_MODULE={{ settings }}
+export DJANGO_SETTINGS_MODULE={{ settings or 'cannula.settings' }}
 
 # Check for the user running the command
 if [[ ! $1 ]]
