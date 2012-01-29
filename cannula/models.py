@@ -150,6 +150,11 @@ class Project(models.Model):
     def conf_dir(self):
         """Project configuration directory."""
         return os.path.join(conf.CANNULA_BASE, 'config', self.name)
+    
+    @property
+    def virtualenv(self):
+        """Project specific environment."""
+        return os.path.join(self.conf_dir, 'venv')
         
     @property
     def appconfig(self):
