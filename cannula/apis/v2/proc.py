@@ -66,21 +66,26 @@ class Supervisord(Configurable):
         )
     
     def reread(self):
+        log.info("Reloading confiruation.")
         return self.server.supervisor.reloadConfig()
 
     def stop(self, name):
+        log.info("Stopping: %s", name)
         return self.server.supervisor.stopProcessGroup(name)
     
     def start(self, name):
+        log.info("Starting: %s", name)
         return self.server.supervisor.startProcessGroup(name)
     
     def restart(self, name):
+        log.info("Restarting: %s", name)
         self.stop(name)
         self.start(name)
     
     def add_project(self, name):
         try:
             self.server.supervisor.addProcessGroup(name)
+            log.info("Added group: %s", name)
         except xmlrpclib.Fault, f:
             if f.faultCode == 90:
                 log.warning("%s already added" % name)

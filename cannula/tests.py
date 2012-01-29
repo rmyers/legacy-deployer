@@ -111,11 +111,11 @@ class CannulaTestCase(TestCase):
         # 
         self.api.projects.initialize(p1, user='abby')
         push = '%s master' % p1.repo_dir
-        out, _ = shell(Git.push % push, cwd=self.dummy_project)
-        print out
+        status, out = shell(Git.push % push, cwd=self.dummy_project)
+        print status, out
         yaml_file = os.path.join(p1.project_dir, 'app.yaml')
         self.assertTrue(os.path.isfile(yaml_file))
-        self.api.deploy.deploy(p1, 'abby')
+        self.api.deploy.deploy(p1, 'abby', 'initial commit', 'blah')
     
     def tearDown(self):
         super(CannulaTestCase, self).tearDown()
