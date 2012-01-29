@@ -42,7 +42,8 @@ class Git(object):
         return self._exec('%(git)s status -s')
     
     def head(self):
-        return self._exec("%(git)s log -1 --pretty=oneline |awk '{print $1}'")
+        _, head = self._exec("%(git)s log -1 --pretty=oneline |awk '{print $1}'")
+        return head
     
     def commit(self, message):
         return self._exec("%(git)s commit -m '%(message)s'", message=message)
