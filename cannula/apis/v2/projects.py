@@ -11,6 +11,7 @@ from cannula.apis import PermissionError
 from cannula.apis import BaseAPI
 from cannula.conf import CANNULA_GIT_CMD, CANNULA_CMD
 from cannula.api import api
+from cannula.models import valid_name
 from cannula.utils import write_file
 
 log = getLogger('api')
@@ -46,6 +47,7 @@ class ProjectAPI(BaseAPI):
     
     
     def _create(self, group, name, description):
+        valid_name(name)
         project, created = self.model.objects.get_or_create(group=group, name=name, 
             defaults={'description':description})
         if not created:

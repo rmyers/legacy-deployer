@@ -4,6 +4,7 @@ from django.db.models.loading import get_model
 
 from cannula.apis import ApiError, DuplicateObject, BaseAPI, PermissionError
 from cannula.api import api
+from cannula.models import valid_name
 
 log = getLogger('api')
 
@@ -14,6 +15,7 @@ class GroupAPI(BaseAPI):
     def _create(self, name, user, description, **kwargs):
         if not user.has_perm('add_projectgroup'):
             raise PermissionError("You are not allowed to add Groups!")
+        valid_name(name)
         group, created = self.model.objects.get_or_create(name=name, 
             defaults={'description':description})
         if not created:

@@ -7,6 +7,7 @@ from django.db.models.loading import get_model
 from cannula.apis import BaseAPI
 from cannula.conf import CANNULA_CMD
 from cannula.api import api
+from cannula.models import valid_key
 from django.template.loader import render_to_string
 
 log = getLogger('api.keys')
@@ -21,6 +22,7 @@ class KeyAPI(BaseAPI):
         return key
     
     def create_or_update(self, user, name, ssh_key):
+        valid_key(ssh_key)
         key, created = self.model.objects.get_or_create(user=user,
             name=name, defaults={'ssh_key':ssh_key})
         if not created:
@@ -42,7 +44,6 @@ class KeyAPI(BaseAPI):
     
     def create(self, user, name, ssh_key):
         user = api.users.get(user)
-        # create group
         return self.create_or_update(user, name, ssh_key)
     
     def list(self, user=None):
