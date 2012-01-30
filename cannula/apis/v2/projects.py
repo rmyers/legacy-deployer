@@ -33,7 +33,7 @@ class ProjectAPI(BaseAPI):
         try:
             return self.model.objects.get(name=projectname)
         except self.model.DoesNotExist:
-            raise UnitDoesNotExist("Project does not exist") 
+            raise UnitDoesNotExist("Project: %s does not exist" % projectname) 
     
     def get(self, projectname):
         return self._get(projectname)

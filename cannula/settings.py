@@ -1,36 +1,7 @@
 
 import os
 
-from cannula.conf import config
-
-# Cannula settings
-CANNULA_MODULE_DIR = os.path.abspath(os.path.dirname(__file__))
-CANNULA_BASE = config.get('cannula', 'base')
-
-# Proxy client, default options are:
-CANNULA_PROXY_NEEDS_SUDO = config.getboolean('proxy', 'needs_sudo')
-
-# Process Supervisor Settings
-CANNULA_SUPERVISOR_USE_INET = config.getboolean('proc', 'use_inet')
-CANNULA_SUPERVISOR_INET_PORT = config.get('proc', 'inet_port')
-CANNULA_SUPERVISOR_USER = config.get('proc', 'user')
-CANNULA_SUPERVISOR_PASSWORD = config.get('proc', 'password')
-CANNULA_SUPERVISOR_MANAGES_PROXY = config.getboolean('proc', 'manages_proxy')
-
-# Path to 'git' command
-CANNULA_GIT_CMD = config.get('cannula', 'git_cmd') #reese
-
-# Path to cannulactl command
-CANNULA_CMD = config.get('cannula', 'cmd')
-# Path to canner.sh bash script 
-CANNULA_SSH_COMMAND = config.get('cannula', 'ssh_cmd')
-
-# API classes you can override a single one in django settings
-# this dictionary will be updated with the user defined one.
-CANNULA_API = dict(config.items('api'))
-
-# Lock timeout in seconds
-CANNULA_LOCK_TIMEOUT = config.getint('cannula', 'lock_timeout')
+from cannula.conf import *
 
 
 DEBUG = config.getboolean('django', 'debug')
@@ -48,6 +19,7 @@ DATABASES = {
         'PASSWORD': config.get('database', 'password'),                  # Not used with sqlite3.
         'HOST': config.get('database', 'host'),                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': config.get('database', 'port'),                      # Set to empty string for default. Not used with sqlite3.
+        'TEST_NAME': config.get('database', 'testname'),
     }
 }
 

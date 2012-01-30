@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+from django.db import transaction
 import logging
 import sys
 import shutil
@@ -15,7 +16,7 @@ from cannula import conf
 base_dir = tempfile.mkdtemp(prefix="cannula_test_")
 conf.CANNULA_BASE = base_dir
 
-class CannulaTestCase(TestCase):
+class CannulaTestCase(TransactionTestCase):
     
     def setUp(self):
         super(CannulaTestCase, self).setUp()
@@ -107,15 +108,33 @@ class CannulaTestCase(TestCase):
         self.assertEqual(key.ssh_key, ssh_key)
     
     def test_deploy(self):
+        from cannula.utils import shell
+        # Fake a remote push
         g1 = self.api.groups.create('testy', 'abby')
         p1 = self.api.projects.create(name='test', user='abby', group=g1)
-        # 
         self.api.projects.initialize(p1, user='abby')
-        status, out = self.dummy.push(p1.repo_dir, 'master')
-        print status, out
+        self.assertTrue(os.path.isfile(p1.post_receive))
+
+        # Persist the data in the test db so that external commands (git) can
+        # see the data as well.
+        transaction.commit()
+        
+        cmd = "%s push %s master" % (conf.CANNULA_GIT_CMD, p1.repo_dir)
+        _, cannula_cmd = shell('which cannulactl')
+        self.assertTrue(os.path.isfile('/tmp/cannula_test.db'))
+        env = {
+            'C_USER': 'abby', 
+            'DJANGO_SETTINGS_MODULE': 'cannula.test_settings',
+            'CANNULA_BASE': self.base_dir,
+            'CANNULA_CMD': cannula_cmd.strip(),
+            'REPO': 'testy/test.git',
+        }
+        # 
+        _, out = shell(cmd, cwd=self.dummy_project, env=env)
+        print out
         yaml_file = os.path.join(p1.project_dir, 'app.yaml')
         self.assertTrue(os.path.isfile(yaml_file))
-        self.api.deploy.deploy(p1, 'abby', 'initial commit', 'blah')
+        #self.api.deploy.deploy(p1, 'abby', 'initial commit', 'blah')
     
     def tearDown(self):
         super(CannulaTestCase, self).tearDown()

@@ -21,14 +21,17 @@ checkout()
     then
         echo "Checked out revision $newrev"
         echo "Deploying new version"
-        $CANNULA_CMD $C_USER deploy --oldrev=$oldrev --newrev=$newrev --repo=$REPO
+        echo "using settings: $DJANGO_SETTINGS_MODULE"
+        echo "Repo: $REPO"
+        $CANNULA_CMD $C_USER deploy --oldrev=$oldrev --newrev=$newrev --repo=$REPO --settings=$DJANGO_SETTINGS_MODULE
         if [ $? == 0 ]
         then 
             echo "Success!"
         else
             echo "Reverting failed deploy"
             git-checkout -f $oldrev
-            $CANNULA_CMD $C_USER deploy --repo=$REPO
+            # TODO: MAKE A REVERT COMMAND!
+            $CANNULA_CMD $C_USER deploy --oldrev=$newrev --newrev=$oldrev --repo=$REPO --settings=$DJANGO_SETTINGS_MODULE
         fi
     else
         echo "Checkout failed, please reset project"
