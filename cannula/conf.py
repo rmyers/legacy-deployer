@@ -1,7 +1,12 @@
 import ConfigParser, os
 
+CANNULA_MODULE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 config = ConfigParser.ConfigParser()
-config.readfp(open('defaults.cfg'))
+
+# Load initial defaults
+defaults = os.path.join(CANNULA_MODULE_DIR, 'defaults.cfg')
+config.readfp(open(defaults))
 
 CANNULA_ETC_CONF = '/etc/cannula/cannula.conf'
 CANNULA_HOME_CONF = os.path.expanduser('~/.cannula.conf')
@@ -10,7 +15,6 @@ config.read([CANNULA_ETC_CONF, CANNULA_HOME_CONF])
 
 
 # Cannula settings
-CANNULA_MODULE_DIR = os.path.abspath(os.path.dirname(__file__))
 CANNULA_BASE = config.get('cannula', 'base')
 
 # Proxy client, default options are:

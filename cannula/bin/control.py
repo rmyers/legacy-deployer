@@ -29,8 +29,11 @@ Which can be run simply thru ssh like so::
 """
 import sys
 import os
+import re
 
 from optparse import OptionParser
+
+NAME_MATCH = re.compile('^([a-zA-Z][-_a-zA-Z0-9]*)/([a-zA-Z][-_a-zA-Z0-9]*)\.git')
 
 def info(user):
     from cannula.api import api
@@ -40,35 +43,31 @@ def create_group(user, name, description):
     from cannula.api import api
     return api.groups.create(name, user, description)
 
-def initialize(user, repo):
+def initialize(user, project):
     """Initialize the git repo for this project."""
-    if '/' not in repo:
-        sys.exit("Invalid repo: %s" % repo)
-    _, project = repo.split('/')
-    if '.' not in project:
-        sys.exit("Invalid repo: %s" % repo)
-    project, _ = project.split('.')
-    
     from cannula.api import api
     try:
         api.projects.initialize(project, user)
     except Exception, e:
         sys.exit("Error initializing project: %s" % e)
-    return True
+    sys.exit(0)
 
-def deploy(user, repo):
-    return True
+def deploy(user, project, oldrev, newrev):
+    from cannula.api import api
+    try:
+        api.deploy.deploy(project, user, oldrev, newrev)
+    except Exception, e:
+        raise
+        sys.exit("Error deploying project: %s" % e)
+    sys.exit(0)
 
-def has_perm(user, perm, group=None, project=None, repo=None):
+def has_perm(user, perm, group=None, project=None):
     """
     Check that a user has a certain permission. 
     Exit non-zero if not so bash scripts may use this.
     """
     from cannula.api import api
-    if repo is not None:
-        # TODO: make this better
-        group = repo.split('/')[0]
-    if api.permissions.has_perm(user, perm, project=project, group=group):
+    if api.permissions.has_perm(user, perm, group=group, project=project):
         return True
     sys.exit("Access Denied!")
 
@@ -78,6 +77,8 @@ def main():
     parser.add_option("--project", dest="project", help="project to update")
     parser.add_option("--group", dest="group",help="group to update")
     parser.add_option("--repo", dest="repo", help="repo to update")
+    parser.add_option("--oldrev", dest="oldrev", help="Previous revision of repository")
+    parser.add_option("--newrev", dest="newrev", help="New revision of repository")
     
     (options, args) = parser.parse_args()
     if len(args) < 2:
@@ -86,6 +87,20 @@ def main():
         os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
     else:
         os.environ['DJANGO_SETTINGS_MODULE'] = 'cannula.settings'
+    
+    # Parse the group and project from repo or group/project options
+    group = None
+    project = None
+    if options.repo:
+        match = NAME_MATCH.match(options.repo)
+        if not match:
+            parser.error("Invalid Repository")
+        group = match.group(1)
+        project = match.group(2)
+    if options.project:
+        project = options.project
+    if options.group:
+        group = options.group
         
     user = args[0]
     command = args[1]
@@ -110,18 +125,18 @@ def main():
         return create_group(user, groupname, description)
     
     elif command == 'initialize':
-        return initialize(user=user, repo=options.repo)
+        return initialize(user=user, project=project)
     
     elif command == 'deploy':
-        return deploy(user=user, repo=options.repo)
+        return deploy(user=user, project=project, oldrev=options.oldrev, 
+            newrev=options.newrev)
     
     elif command == 'has_perm':
         # user has_perm perm --project=project --group=group
         if len(args) > 3:
             parser.error("Must specify permission!")
         perm = args[2]
-        return has_perm(user, perm, group=options.group, 
-            project=options.project, repo=options.repo)
+        return has_perm(user, perm, group=group, project=project)
     
     else:
         parser.error("command not found!")
