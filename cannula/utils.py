@@ -7,7 +7,7 @@ Various helper scripts for the cannula framework.
 import sys
 import posixpath
 from logging import getLogger
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 from django.template.loader import render_to_string
 
@@ -55,6 +55,7 @@ CANNULA_GIT_CMD = 'git'
 log = getLogger(__name__)
 
 def shell(command, cwd=None, env=None):
+    """Simple shell command processing, """
     log.debug('SHELL: %s' % command)
     process = Popen(command.strip(), stdout=PIPE, stderr=PIPE, shell=True, cwd=cwd, env=env)
     stdout, stderr = process.communicate()
@@ -121,27 +122,24 @@ def write_file(file_name, template, context=None):
         temp = render_to_string(template, context)
         f.write(temp)
         f.close()
-    
-class Git:
-    """
-    Simple helper object for interacting with configration repos.
-    
-    CANNULA_BASE/proxy/
-    CANNULA_BASE/supervisor/
-    CANNULA_BASE/config/(project)/
-    CANNULA_BASE/pb/(message type)/
-    
-    We store changes to the configs in git in order to allow rollbacks
-    and to show history of changes, you know like in your code!
-    """
 
-    init = '%s init' % CANNULA_GIT_CMD
-    add_all = '%s add --all' % CANNULA_GIT_CMD
-    reset = '%s reset --hard' % CANNULA_GIT_CMD
-    status = "%s status -s" % CANNULA_GIT_CMD
-    new_files =  "%s status -s |awk '/A/ {print $2}'" % CANNULA_GIT_CMD
-    modifed_files = "%s status -s |awk '/M/ {print $2}'" % CANNULA_GIT_CMD
-    head = "%s log -1 --pretty=oneline |awk '{print $1}'" % CANNULA_GIT_CMD
-    commit = '%s commit -m "%%s"' % CANNULA_GIT_CMD
-    diff = '%s diff' % CANNULA_GIT_CMD
-    push = '%s push %%s' % CANNULA_GIT_CMD
+def call_subprocess(cmd, cwd=None, env=None):
+    """Call subprocess and print out stderr/stdout during processing."""
+    
+    log.debug("Running command %s" % cmd)
+
+    try:
+        proc = Popen(cmd.strip(), stderr=STDOUT, stdout=PIPE, shell=True, cwd=cwd, env=env)
+    except:
+        log.exception("Error while executing command %s" % cmd)
+        raise
+    
+    while True:
+        line = proc.stdout.readline()
+        if not line:
+            break
+        line = line.strip()
+        sys.stderr.write(line+'\n')
+
+    proc.wait()
+    return proc.returncode
