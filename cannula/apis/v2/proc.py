@@ -1,14 +1,12 @@
 import os
+import sys
 import logging
 import xmlrpclib
-import posixpath
 
 from supervisor.xmlrpc import SupervisorTransport
 
-from django.template.loader import render_to_string
-
 from cannula import conf
-from cannula.utils import shell, Git, write_file
+from cannula.utils import shell, write_file
 from cannula.api import api
 from cannula.apis import Configurable
 
@@ -65,8 +63,10 @@ class Supervisord(Configurable):
             )
         )
     
-    def reread(self):
-        log.info("Reloading confiruation.")
+    def reread(self, stderr=False):
+        log.info("Reloading configuration")
+        if stderr:
+            sys.stderr.write("Supervisor --> reloading configuration\n")
         return self.server.supervisor.reloadConfig()
 
     def stop(self, name):
@@ -77,12 +77,14 @@ class Supervisord(Configurable):
         log.info("Starting: %s", name)
         return self.server.supervisor.startProcessGroup(name)
     
-    def restart(self, name):
+    def restart(self, name, stderr=False):
+        if stderr:
+            sys.stderr.write("Supervisor --> restarting %s\n" % name)
         log.info("Restarting: %s", name)
         self.stop(name)
         self.start(name)
     
-    def add_project(self, name):
+    def add_project(self, name, stderr=False):
         try:
             self.server.supervisor.addProcessGroup(name)
             log.info("Added group: %s", name)

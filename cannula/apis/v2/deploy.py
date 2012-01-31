@@ -1,10 +1,10 @@
 import os
-import sys
 import shutil
 import logging
 import yaml
 import fcntl
 import re
+import datetime
 
 from logging import getLogger
 
@@ -14,8 +14,7 @@ from cannula.apis import BaseAPI, ApiError
 from cannula.api import api
 from cannula import conf
 from cannula.git import Git
-from cannula.utils import shell, import_object
-import datetime
+from cannula.utils import import_object
 
 log = getLogger('api')
 
@@ -63,7 +62,7 @@ class DeployAPI(BaseAPI):
                 os.makedirs(project.conf_dir)
                 conf_dir.init()
                 # Add an initial commit, just to make a rollback point.
-                shell('touch app.yaml', cwd=project.conf_dir)
+                open(project.deployconfig, 'a')
                 conf_dir.add_all()
                 conf_dir.commit("Initial Commit")
             
@@ -133,12 +132,12 @@ class DeployAPI(BaseAPI):
                     raise ApiError("Deployment failed")
             
             # Add the project
+            api.proc.reread(stderr=True)
             api.proc.add_project(project.name)
-            api.proc.reread()
                 
             # Restart the project
             try:
-                api.proc.restart(project.name)
+                api.proc.restart(project.name, stderr=True)
             except:
                 logging.exception("Error restarting project")
                 conf_dir.reset()

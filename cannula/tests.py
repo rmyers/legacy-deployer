@@ -1,18 +1,16 @@
-from django.test import TransactionTestCase
-from django.db import transaction
 import logging
-import sys
 import shutil
 import os
 import tempfile
-import ConfigParser
-import subprocess
-from django.core.exceptions import ValidationError
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tests/', 'data')
+from django.test import TransactionTestCase
+from django.db import transaction
+from django.core.exceptions import ValidationError
 
 from cannula import conf
 
+# Override the default base directory (don't mess with real data yo!)
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tests/', 'data')
 base_dir = tempfile.mkdtemp(prefix="cannula_test_")
 conf.CANNULA_BASE = base_dir
 
@@ -108,7 +106,7 @@ class CannulaTestCase(TransactionTestCase):
         self.assertEqual(key.ssh_key, ssh_key)
     
     def test_deploy(self):
-        from cannula.utils import shell
+        from cannula.utils import shell, call_subprocess
         # Fake a remote push
         g1 = self.api.groups.create('testy', 'abby')
         p1 = self.api.projects.create(name='test', user='abby', group=g1)
@@ -130,8 +128,7 @@ class CannulaTestCase(TransactionTestCase):
             'REPO': 'testy/test.git',
         }
         # 
-        _, out = shell(cmd, cwd=self.dummy_project, env=env)
-        print out
+        call_subprocess(cmd, cwd=self.dummy_project, env=env)
         yaml_file = os.path.join(p1.project_dir, 'app.yaml')
         self.assertTrue(os.path.isfile(yaml_file))
         #self.api.deploy.deploy(p1, 'abby', 'initial commit', 'blah')

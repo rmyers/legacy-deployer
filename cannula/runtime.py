@@ -1,8 +1,7 @@
 import os
 import sys
 
-from cannula import conf
-from cannula.utils import shell
+from cannula.utils import call_subprocess
 
 class Runtime(object):
     """Base Runtime"""
@@ -39,15 +38,15 @@ class Python(object):
             # write to std error cause then git-recieve-pack prints it out.
             # TODO: find a better way
             sys.stderr.write("Creating virtual environment for %s\n" % project)
-            status, _ = shell(cmd % (py_version, project.virtualenv))
+            status = call_subprocess(cmd % (py_version, project.virtualenv))
             if status > 0:
                 raise Exception("Creating virtual environment failed: %s" % cmd)
         
         pip = os.path.join(project.virtualenv, 'bin', 'pip')
         sys.stderr.write("Installing requirements\n")
         
-        status, output = shell("%s install -r %s" % (pip, requirements))
+        status = call_subprocess("%s install -r %s" % (pip, requirements))
         if status > 0:
-            raise Exception("Running pip failed: %s" % output)
+            raise Exception("Running pip install failed")
         
         
