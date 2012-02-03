@@ -23,7 +23,7 @@
           	<li><a href="/">Home</a></li>
             <li><a href="{{MEDIA_URL}}cannula/docs/">Documentation</a></li>
         	{% if user.is_superuser %}
-        	<li><a href="#">Settings</a></li>
+        	<li><a href="{% url manage-settings %}">Settings</a></li>
         	{% endif %}
             {% block navigation %}
             {% endblock %}

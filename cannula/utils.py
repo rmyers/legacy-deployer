@@ -143,3 +143,31 @@ def call_subprocess(cmd, cwd=None, env=None):
 
     proc.wait()
     return proc.returncode
+
+def multi_process(cmds, cwd=None, env=None):
+    """
+    Run multiple processes in parallel and report status when finished.
+    You might want to make sure these commands don't hang otherwise I will never
+    return ;)
+    
+    This is usefull to run a command on multple remote hosts (git push remote ...)
+    """
+    import time
+    
+    if not isinstance(cmds, (list, tuple)):
+        cmds = [cmds]
+    running_procs = []
+    finished_procs = []
+    for cmd in cmds:
+        p = Popen(cmd.strip(), stderr=STDOUT, stdout=PIPE, shell=True, cwd=cwd, env=env)
+        running_procs.append(p)
+    
+    while len(running_procs):
+        for proc in running_procs:
+            proc.poll()
+            if proc.returncode is not None:
+                finished_procs.append((proc.returncode, proc.stdout.read()))
+                running_procs.remove(proc)
+            time.sleep(.05)
+    
+    return finished_procs
