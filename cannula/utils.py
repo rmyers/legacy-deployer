@@ -49,9 +49,6 @@ except ImportError:  # Compatibility for Python <= 2.6
         __import__(name)
         return sys.modules[name]
 
-# TODO: find a way to customize this
-CANNULA_GIT_CMD = 'git'
-
 log = getLogger(__name__)
 
 def shell(command, cwd=None, env=None):
@@ -140,6 +137,7 @@ def call_subprocess(cmd, cwd=None, env=None):
             break
         line = line.strip()
         sys.stderr.write(line+'\n')
+        sys.stderr.flush()
 
     proc.wait()
     return proc.returncode
