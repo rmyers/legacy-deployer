@@ -7,9 +7,9 @@ class Git(object):
     """
     Simple wrapper for git command line utils.
     
-    CANNULA_BASE/proxy/
-    CANNULA_BASE/supervisor/
-    CANNULA_BASE/config/(project)/
+    * CANNULA_BASE/proxy/
+    * CANNULA_BASE/supervisor/
+    * CANNULA_BASE/config/(project)/
     
     We store changes to the configs in git in order to allow rollbacks
     and to show history of changes, you know like in your code!

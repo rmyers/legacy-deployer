@@ -1,6 +1,6 @@
 """
-cannula Utilities
-================
+Cannula Utilities
+=================
 
 Various helper scripts for the cannula framework.
 """
