@@ -89,6 +89,12 @@ class DeployAPI(BaseAPI):
                 if handler.get('worker'):
                     # Setup worker
                     name = '%s_%d' % (project.name, handler_position)
+                    # defaults are special, they reference another
+                    # section in the app.yaml
+                    defaults = handler.pop('defaults', None)
+                    if defaults:
+                        handler_defaults = app.get(defaults, {})
+                        handler.update(handler_defaults)
                     handle = Handler(name, project, **handler)
                     # write out bash start up scripts
                     handle.write_startup_script()
@@ -117,6 +123,8 @@ class DeployAPI(BaseAPI):
             _, changed = conf_dir.status()
             logging.debug(changed)
             if re.search('vhost.conf', changed):
+                # Vhost file is either new or changed which will require 
+                # our proxy server to reload its configuration files.
                 try:
                     api.proxy.restart()
                 except:

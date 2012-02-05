@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from cannula import conf
 
 # Override the default base directory (don't mess with real data yo!)
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../tests/', 'data')
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates', 'test', 'data')
 base_dir = tempfile.mkdtemp(prefix="cannula_test_")
 conf.CANNULA_BASE = base_dir
 
