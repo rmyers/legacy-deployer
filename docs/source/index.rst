@@ -7,7 +7,8 @@ Welcome to Cannula Project's documentation!
 ===========================================
 
 Cannula is a server that simplifies the creation and deployment of applications
-to a single host or a cluster of machines. It uses git to handle deployment 
+to a single host or a cluster of machines. The goal of this project is to free
+up developers from doing sysadmin work. It uses git to handle deployment 
 and configuration management. It has a built-in web server (written in django)
 but is not required to run, as the deploy process is triggered with a git push::
 
@@ -16,9 +17,9 @@ but is not required to run, as the deploy process is triggered with a git push::
 Cannula offers a simple way to create a project and groups in order to define
 rolls that individuals have. This allows you to limit power on the actual host
 systems to those who know what they are doing. With cannula all authentication
-is handled with ssh authorized_keys, which deffers authorization to the cannula
+is handled with ssh authorized_keys, which defers authorization to the cannula
 server. Developers do not need to have ssh access to the machine(s) and/or sudo
-permissions. 
+permissions. Read security first!
 
 Cannula manages the proxy (nginx or apache) and the individual web applications
 it stores all cahnges to configurations in git automatically. This allows you 
