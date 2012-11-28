@@ -47,6 +47,8 @@ class DeployLock(object):
         self.lock_file = os.path.join(project.conf_dir, '__locked__')
     
     def __enter__(self):
+        if not os.path.isdir(self.project.conf_dir):
+            os.makedirs(self.project.conf_dir)
         if os.path.isfile(self.lock_file):
             # the project is locked
             with open(self.lock_file) as l:
