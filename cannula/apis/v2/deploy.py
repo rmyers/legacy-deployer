@@ -59,8 +59,6 @@ class DeployLock(object):
             self.locked = True
     
     def __exit__(self, ex, value, trace):
-        if value is not None:
-            raise
         if self.locked:
             os.remove(self.lock_file)
         
