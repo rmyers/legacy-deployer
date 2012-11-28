@@ -52,7 +52,7 @@ class DeployLock(object):
             with open(self.lock_file) as l:
                 lock_info = l.read()
             raise Exception("Project locked by: %s" % lock_info)
-        with open(self.lock_file, 'a') as l:
+        with open(self.lock_file, 'w') as l:
             l.write('%s - %s' % (self.user, datetime.datetime.now()))
             self.locked = True
     
