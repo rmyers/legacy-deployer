@@ -68,7 +68,7 @@ def has_perm(user, perm, group=None, project=None):
     """
     from cannula.api import api
     if api.permissions.has_perm(user, perm, group=group, project=project):
-        return True
+        sys.exit(0)
     sys.exit("Access Denied!")
 
 def main():
