@@ -1,17 +1,22 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, make_option
 from django.conf import settings
 
 # Stop Django from pissing all over the console with debug messages!
 settings.DEBUG = False
 
-from cannula.api import api
+from cannula.bin.admin import keys
 
 class Command(BaseCommand):
     help = 'Print out an authorized_keys for the cannula user.'
-
+    
+    option_list = BaseCommand.option_list + (
+        make_option('--commit',
+            action='store_true',
+            dest='commit',
+            default=False,
+            help='Write the authorized_keys file to ~/.ssh directory.')
+        )
+    
     def handle(self, *args, **options):
-        self.verbosity = 0
-        
-        base_template = api.keys.authorized_keys()
-        
-        self.stdout.write(base_template)
+        output = keys(*args, **options)
+        self.stdout.write(output)

@@ -17,9 +17,19 @@ import logging
 from optparse import OptionParser
 from random import choice
 
-def keys():
+def keys(verbosity=1, commit=False, **kwargs):
     from cannula.api import api
-    api.keys.write_keys()
+    levels = {0: logging.ERROR, 1: logging.INFO, 2: logging.DEBUG}
+    logger = logging.getLogger('cannula')
+    logger.setLevel(levels.get(int(verbosity)))
+    logger.debug("Authorized keys")
+    if commit:
+        logger.debug("Writing Authorized Keys File")
+        return api.keys.write_keys()
+    logger.info("Dry Run, use --commit to save file.")
+    return api.keys.authorized_keys()
+    
+    
 
 def create_directory(config, key, interactive, logger):
     """Create directory in config, prompt for a new directory if interactive.

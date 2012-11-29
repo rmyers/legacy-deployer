@@ -5,7 +5,7 @@ from shutil import copy2
 from django.db.models.loading import get_model
 
 from cannula.apis import BaseAPI
-from cannula.conf import CANNULA_CMD
+from cannula.conf import CANNULA_SSH_COMMAND
 from cannula.api import api
 from cannula.models import valid_key
 from django.template.loader import render_to_string
@@ -59,7 +59,7 @@ class KeyAPI(BaseAPI):
         """Returns a formated authorized_key file for all keys."""
         ctx = {
             'keys': self.list(),
-            'cannula_cmd': CANNULA_CMD,
+            'cannula_cmd': CANNULA_SSH_COMMAND,
         }
         return render_to_string('cannula/authorized_keys.txt', ctx)
         
