@@ -17,18 +17,13 @@ import logging
 from optparse import OptionParser
 from random import choice
 
-def keys(verbosity=1, commit=False, **kwargs):
+def keys(commit=False, **kwargs):
     from cannula.api import api
-    levels = {0: logging.ERROR, 1: logging.INFO, 2: logging.DEBUG}
-    logger = logging.getLogger('cannula')
-    logger.setLevel(levels.get(int(verbosity)))
-    logger.debug("Authorized keys")
     if commit:
-        logger.debug("Writing Authorized Keys File")
         api.keys.write_keys()
-        return "Authorized Keys file updated."
-    logger.info("Dry Run, use --commit to save file.")
-    return api.keys.authorized_keys()
+        sys.stdout.write("Authorized Keys file updated.\n")
+    sys.stdout.write("Dry Run, use --commit to save file.\n\n")
+    sys.stdout.write(api.keys.authorized_keys())
     
     
 

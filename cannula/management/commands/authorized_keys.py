@@ -18,5 +18,4 @@ class Command(BaseCommand):
         )
     
     def handle(self, *args, **options):
-        output = keys(*args, **options)
-        self.stdout.write(output)
+        keys(*args, **options)
