@@ -14,7 +14,7 @@ class Command(BaseCommand):
             action='store_true',
             dest='commit',
             default=False,
-            help='Write the authorized_keys file to ~/.ssh directory.')
+            help='Write the authorized_keys file to ~/.ssh directory.'),
         )
     
     def handle(self, *args, **options):

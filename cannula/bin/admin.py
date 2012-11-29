@@ -25,7 +25,8 @@ def keys(verbosity=1, commit=False, **kwargs):
     logger.debug("Authorized keys")
     if commit:
         logger.debug("Writing Authorized Keys File")
-        return api.keys.write_keys()
+        api.keys.write_keys()
+        return "Authorized Keys file updated."
     logger.info("Dry Run, use --commit to save file.")
     return api.keys.authorized_keys()
     
