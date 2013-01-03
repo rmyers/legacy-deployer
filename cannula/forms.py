@@ -106,7 +106,7 @@ class SettingsForm(forms.Form):
     database_engine = ImportField()
     database_name = forms.CharField()
     database_user = forms.CharField(required=False)
-    database_password = forms.CharField(required=False, widget=forms.PasswordInput())
+    database_password = forms.CharField(required=False)
     database_host = forms.CharField(required=False)
     database_port = forms.CharField(required=False)
     
@@ -119,5 +119,5 @@ class SettingsForm(forms.Form):
     django_language_code = forms.CharField()
     django_media_url = forms.CharField()
     django_admin_media_prefix = forms.CharField()
-    django_secret_key = forms.CharField(widget=forms.PasswordInput())
+    django_secret_key = forms.CharField()
     

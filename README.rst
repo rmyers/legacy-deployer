@@ -33,11 +33,16 @@ You should add a new user on you machine for the best results. Log in as
 this new user and issue the commands to bootstrap a sample instance of
 cannula:
 
+#. Install the dependancies (ubuntu)::
+
+	$ sudo apt-get install python-dev build-essential nginx python-pip \
+	  python-virtualenv git
+
 #. Create a cannula user and a virtualenv for the code::
 
-    $ sudo useradd cannula
+    $ sudo adduser cannula --disabled-password --home /cannula
     $ sudo su - cannula
-    $ virtualenv --no-site-packages --distribute --relocatable cannulaenv
+    $ virtualenv cannulaenv
     $ source cannulaenv/bin/activate
 
 #. Install cannula::
@@ -51,6 +56,21 @@ cannula:
     django-admin.py runserver --settings=cannula.settings
     
 #. Use the newly spawned server, enjoy!
+
+Security
+~~~~~~~~
+
+Security is good, this is one of the advantanges of using cannula. You can give
+a developer access to just deploy a single application or server without giving
+them ssh access and sudo. You should also secure the machine to disable 
+password authentication (once you have your ssh keys setup of course)
+
+Edit your ``/etc/ssh/sshd_config``::
+
+	PasswordAuthentication no
+
+Then restart sshd. Now on the plus side you wont get thousands of login attempts
+by bots using a dictionary brute force.
 
 Configuration
 ~~~~~~~~~~~~~
