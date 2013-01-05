@@ -1,0 +1,12 @@
+{
+  "name": "cannula-tools",
+  "version": "0.1.0",
+  "description": "A package containing asset tools",
+  "dependencies": {
+    "grunt": "0.3.x",
+    "grunt-contrib-less": ">= 0.3.0",
+    "grunt-jasmine-runner": ">= 0.5.5",
+    "grunt-contrib-copy": ">= 0.3.2"
+  },
+  "engine": "node 0.8.x"
+}
