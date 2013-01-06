@@ -22,7 +22,7 @@ module.exports = function(grunt) {
       },
       vendor: {
         src: deps,
-        dest: '../cannul/static/js/vendor.js'
+        dest: '../cannula/static/js/vendor.js'
       }
     },
 
