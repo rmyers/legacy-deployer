@@ -63,12 +63,10 @@ STATIC_ROOT = os.path.join(CANNULA_MODULE_DIR, 'static_root')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_URL = config.get('django', 'static_url')
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = config.get('django', 'admin_media_prefix')
+# Main site url prefix
+MAIN_URL = config.get('cannula', 'main_url')
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = config.get('django', 'secret_key')
@@ -87,7 +85,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'cannula.urls'
+ROOT_URLCONF = 'cannula.root_urls'
 
 TEMPLATE_DIRS = [
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

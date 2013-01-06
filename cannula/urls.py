@@ -4,6 +4,16 @@ from django.conf import settings
 
 admin.autodiscover()
 
+from tastypie.api import Api
+
+from cannula import main
+
+v1_api = Api(api_name='v1')
+v1_api.register(main.KeyResource())
+#v1_api.register(main.ProjectResource())
+#v1_api.register(main.GroupResource())
+v1_api.register(main.UserResource())
+
 urlpatterns = patterns('',
     (r'^accounts/login/$', 'django.contrib.auth.views.login', 
         {'template_name': 'cannula/form.html'}),
@@ -13,19 +23,10 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
 )
 
-if settings.DEBUG:
-    # strip off the leading '/' from the MEDIA_URL
-    media_url = settings.MEDIA_URL[1:]
-    urlpatterns += patterns('',
-        (r'^' + media_url + '(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-        # Stop favicon 500 errors when developing
-        (r'^(?P<path>favicon\.ico)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT, 'show_indexes': False})
-    )
     
 urlpatterns += patterns('cannula.views',
     url(r'^$', 'index', name='cannula-index'),
+    url(r'^api/', include(v1_api.urls)),
     url(r'^_api/groups/(?P<group>[^/]+)?', 'group_api', name='group-api'),
     url(r'^_api/keys/(?P<key>[^/]+)?', 'key_api', name='key-api'),
     url(r'^_api/projects/(?P<project>[^/]+)?', 'project_api', name='project-api'),
