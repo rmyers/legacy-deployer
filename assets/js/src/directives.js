@@ -3,9 +3,15 @@
 /* Directives */
 
 
-angular.module('myApp.directives', ['http-auth-interceptor']).
-  directive('appVersion', ['version', function(version) {
-    return function(scope, elm, attrs) {
-      elm.text(version);
+angular.module('myApp.directives', []).
+  directive('whenScrolled', function() {
+    return function(scope, elm, attr) {
+        var raw = elm[0];
+        
+        elm.bind('scroll', function() {
+            if (raw.scrollTop + raw.offsetHeight >= raw.scrollHeight) {
+                scope.$apply(attr.whenScrolled);
+            }
+        });
     };
-  }]);
+  });
