@@ -19,16 +19,18 @@ function PeopleController($resource, $scope, People) {
 };
 
 function LoginController($scope, $http, authService) {
-	console.log($scope);
 	$scope.submit = function () {
-		console.log($scope);
 		$http.post('../accounts/login/', 
 		    'username='+$scope.username+'&password='+$scope.password).
 		    success(function() {
 				authService.loginConfirmed();
 				$scope.username = '';
 				$scope.password = '';
-		});
+				$scope.error = false;
+			}).
+			error(function(resp) {
+				$scope.error = resp.message;
+			});
 	};
 };
 

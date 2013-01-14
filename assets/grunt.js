@@ -1,6 +1,8 @@
 
 var deps = [
+  'js/vendor/jquery-*.js',
   'js/vendor/**/*.js',
+  'bootstrap/js/bootstrap-modal.js',
 ];
 
 var apps = [
