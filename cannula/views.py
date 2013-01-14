@@ -7,10 +7,11 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponseForbidden,\
     HttpResponseServerError, HttpResponse, HttpResponseNotAllowed
-from django.utils.decorators import method_decorator
 from django.views.generic.edit import CreateView
 from cannula.apis.exceptions import DuplicateObject
 from django.core.urlresolvers import reverse
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login
 
 try:
     import json
@@ -26,13 +27,13 @@ from cannula.conf import conf_dict, write_config
 
 logger = getLogger('cannula.views')
 
-def respond_json(obj):
+def respond_json(obj, status=200):
     try:
         json_obj = json.dumps(obj)
     except:
         raise HttpResponseServerError("Could not decode object")
     
-    return HttpResponse(json_obj, mimetype='application/json')
+    return HttpResponse(json_obj, mimetype='application/json', status=status)
 
 def ajax_errors(form):
     return ' '.join([str(e) for e in form.errors.values()])
@@ -303,3 +304,19 @@ def manage_settings(request):
             'title': "Edit Settings",
         })
     )
+
+def login(request):
+    """Ajax Login Form"""
+    
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            auth_login(request, form.get_user())
+
+            if request.session.test_cookie_worked():
+                request.session.delete_test_cookie()
+            return respond_json({'message': "Login Successsful!"})
+        else:
+            return respond_json({'message': "Login Failed"}, status=400)
+    
+    raise HttpResponseNotAllowed()

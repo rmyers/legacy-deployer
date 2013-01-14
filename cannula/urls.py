@@ -15,8 +15,7 @@ v1_api.register(main.KeyResource())
 v1_api.register(main.UserResource())
 
 urlpatterns = patterns('',
-    (r'^accounts/login/$', 'django.contrib.auth.views.login', 
-        {'template_name': 'cannula/form.html'}),
+    (r'^accounts/login/$', 'cannula.views.login'),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout',
         {'template_name': 'cannula/logged_out.html'}),
      (r'^admin/doc/', include('django.contrib.admindocs.urls')),

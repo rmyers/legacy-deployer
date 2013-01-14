@@ -27,28 +27,32 @@
       </div>
     </div>
   
-  <div id="login-holder">
-    <div id="loginbox">
+  <div id="login-holder" class="login-form modal hide">
       <div id="login-inner" ng:controller="LoginController">
-        <form name="loginForm" ng-submit="submit()">
-          <table>
-            <tr>
-              <th>Username</th>
-              <td><input type="text" name="username" ng-model="username" required /></td>
-            </tr>
-            <tr>
-              <th>Password</th>
-              <td><input type="password" name="password" ng-model="password" required /></td>
-            </tr>
-            <tr>
-              <th></th>
-              <td><input type="submit" class="btn btn-primary"/></td>
-            </tr>
-          </table>
+      	<div class="modal-header">
+          <h3>Login Required</h3>
+      	</div>
+        <form name="loginForm" class="form-horizontal" ng-submit="submit()">
+		  <div class="modal-body">
+		  	  <div class="alert alert-error" ng-show="error">{{ error }}</div>
+			  <div class="control-group">
+			    <label class="control-label" for="username">Username</label>
+			    <div class="controls">
+			      <input type="text" name="username" placeholder="Username" ng-model="username" required/>
+			    </div>
+			  </div>
+			  <div class="control-group">
+			    <label class="control-label" for="password">Password</label>
+			    <div class="controls">
+			      <input type="password" name="password" placeholder="Password" ng-model="password" required />
+			    </div>
+			  </div>
+		  </div>
+		  <div class="modal-footer">
+            <input type="submit" value="Login" class="btn btn-primary"/>
+		  </div>
         </form>
       </div>
-      <div class="clear"></div>
-    </div>
   </div>
       
   <div ng-view></div>

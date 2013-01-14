@@ -41,16 +41,18 @@ function PeopleController($resource, $scope, People) {
 };
 
 function LoginController($scope, $http, authService) {
-	console.log($scope);
 	$scope.submit = function () {
-		console.log($scope);
 		$http.post('../accounts/login/', 
 		    'username='+$scope.username+'&password='+$scope.password).
 		    success(function() {
 				authService.loginConfirmed();
 				$scope.username = '';
 				$scope.password = '';
-		});
+				$scope.error = false;
+			}).
+			error(function(resp) {
+				$scope.error = resp.message;
+			});
 	};
 };
 
@@ -73,6 +75,20 @@ angular.module('myApp.directives', []).
             }
         });
     };
+  }).
+  directive('loginForm', function() {
+  	return {
+	  	restrict: 'C',
+	  	link: function(scope, elm, attr) {
+	  	var el = $(elm[0]);
+	  	scope.$on('event:auth-loginRequired', function() {
+	  	  el.modal('show');
+	  	});
+	    scope.$on('event:auth-loginConfirmed', function() {
+	 	  el.modal('hide');
+	  	});
+  	  }
+  	}
   });
 'use strict';
 
