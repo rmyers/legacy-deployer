@@ -17,20 +17,6 @@ import logging
 from optparse import OptionParser
 from random import choice
 
-def keys(commit=False, **kwargs):
-    from cannula.api import api
-    if commit:
-        api.keys.write_keys()
-        sys.stdout.write("Authorized Keys file updated.\n")
-    sys.stdout.write("Dry Run, use --commit to save file.\n\n")
-    sys.stdout.write(api.keys.authorized_keys())
-    
-
-def proxy(commit=False, dry_run=False, msg=''):
-    from cannula.api import api
-    output = api.proxy.write_main_conf(commit=commit, dry_run=dry_run, msg=msg)
-    sys.stdout.write(output)
-
 
 def create_directory(config, key, interactive, logger):
     """Create directory in config, prompt for a new directory if interactive.
@@ -195,12 +181,29 @@ def main():
         
     command = args[0]
     
+    from cannula.api import api
+    
     if command == 'authorized_keys':
-        # Write out autorized_keys file
-        return keys(options.commit)
+        if options.commit:
+            api.keys.write_keys()
+            sys.stdout.write("Authorized Keys file updated.\n")
+            sys.exit()
+        sys.stdout.write("Dry Run, use --commit to save file.\n\n")
+        sys.stdout.write(api.keys.authorized_keys())
+        sys.exit()
+
     
     if command == 'proxy':
-        return proxy(options.commit, options.dry_run, options.msg)
+        output = api.proxy.write_main_conf(
+            commit=options.commit, dry_run=options.dry_run, msg=options.msg)
+        sys.stdout.write(output)
+        sys.exit()
+    
+    if command == 'supervisor':
+        output = api.proc.write_main_conf(
+            commit=options.commit, dry_run=options.dry_run, msg=options.msg)
+        sys.stdout.write(output)
+        sys.exit()
     
     if command == 'initialize':
         return initialize(options.interactive, options.verbosity)
