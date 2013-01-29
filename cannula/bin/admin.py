@@ -25,7 +25,12 @@ def keys(commit=False, **kwargs):
     sys.stdout.write("Dry Run, use --commit to save file.\n\n")
     sys.stdout.write(api.keys.authorized_keys())
     
-    
+
+def proxy(commit=False, dry_run=False, msg=''):
+    from cannula.api import api
+    output = api.proxy.write_main_conf(commit=commit, dry_run=dry_run, msg=msg)
+    sys.stdout.write(output)
+
 
 def create_directory(config, key, interactive, logger):
     """Create directory in config, prompt for a new directory if interactive.
@@ -43,6 +48,7 @@ def create_directory(config, key, interactive, logger):
     
     config[key] = directory
     return config
+
 
 def write_file(config, key, template, interactive, logger):
     """
@@ -67,6 +73,7 @@ def write_file(config, key, template, interactive, logger):
     config[key] = f
     return config
 
+
 def set_option(config, key, interactive, logger, message=''):
     """Simply set an option, if interactive display message"""
     message = message or "\nSet %s to (%s) \nor enter new option: "
@@ -77,6 +84,7 @@ def set_option(config, key, interactive, logger, message=''):
     
     config[key] = value
     return config
+
 
 def setup_database(config, interactive, logger):
     """Setup the django database."""
@@ -114,7 +122,8 @@ def setup_database(config, interactive, logger):
         config = set_option(config, 'database_port', interactive, logger)
     
     return config
-    
+
+
 def initialize(interactive, verbosity):
     levels = {0: logging.ERROR, 1: logging.INFO, 2: logging.DEBUG}
     logger = logging.getLogger('cannula')
@@ -158,13 +167,23 @@ def initialize(interactive, verbosity):
     # Save the configuration
     if config != original:
         write_config(config)
-    
+
+
 def main():
     parser = OptionParser(__doc__)
-    parser.add_option("--settings", dest="settings", help="settings file to use")
-    parser.add_option("--noinput", dest="interactive", action='store_false', default=True,
-        help="Don't prompt for user input just initialize with defaults.")
+    parser.add_option("--settings", dest="settings", 
+                      help="Alternate settings file (cannula.settings)")
+    parser.add_option("--noinput", dest="interactive", action='store_false',
+                      default=True,
+                      help="Don't prompt for user input.")
     parser.add_option("--verbosity", dest="verbosity", help="Level of output 0-None, 1-Normal, 2-All")
+    parser.add_option("--commit", dest="commit", action='store_true', 
+                      default=False,
+                      help="Commit the file")
+    parser.add_option("--dry-run", dest="dry_run", action="store_true",
+                      default=False,
+                      help="Run command but don't commit changes.")
+    parser.add_option("--msg", dest="msg", help="Optional message for commit.")
     
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -178,7 +197,10 @@ def main():
     
     if command == 'authorized_keys':
         # Write out autorized_keys file
-        return keys()
+        return keys(options.commit)
+    
+    if command == 'proxy':
+        return proxy(options.commit, options.dry_run, options.msg)
     
     if command == 'initialize':
         return initialize(options.interactive, options.verbosity)
