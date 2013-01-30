@@ -89,7 +89,8 @@ class Runtime(object):
             cls.notify("Removing env: %s" % project.virtualenv)
             shutil.rmtree(project.virtualenv)
 
-class Python(object):
+
+class Python(Runtime):
     """### Python runtime setup and teardown.
     
     Initialize a virtual environment for this project.
