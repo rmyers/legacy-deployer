@@ -116,6 +116,6 @@ class Python(Runtime):
         pip = os.path.join(project.virtualenv, 'bin', 'pip')
         cls.notify("Installing requirements\n")
         
-        cls.call("%s install -U -r %s" % (pip, requirements))
+        cls.call("%s install -r %s" % (pip, requirements))
         
         
