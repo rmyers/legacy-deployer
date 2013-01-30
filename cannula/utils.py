@@ -110,7 +110,7 @@ def add_blank_choice(choices, force=False):
 #    temp = env.get_template(template)
 #    return temp.render(**context)
 
-def write_file(file_name, template, context=None):
+def write_file(file_name, template, context=None, perm=0644):
     if context is None:
         context = {}
     
@@ -119,6 +119,8 @@ def write_file(file_name, template, context=None):
         temp = render_to_string(template, context)
         f.write(temp)
         f.close()
+    
+    shell('chmod %s %s' % (perm, file_name))
 
 def call_subprocess(cmd, cwd=None, env=None):
     """Call subprocess and print out stderr/stdout during processing."""

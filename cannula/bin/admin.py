@@ -36,7 +36,7 @@ def create_directory(config, key, interactive, logger):
     return config
 
 
-def write_file(config, key, template, interactive, logger):
+def write_file(config, key, template, interactive, logger, perm=0644):
     """
     Write a file to the filesytem, if interactive ask for a new path.
     
@@ -54,7 +54,7 @@ def write_file(config, key, template, interactive, logger):
         os.makedirs(directory, 0700)
     
     # Write out the file
-    wf(f, template, config)
+    wf(f, template, config, perm=perm)
     
     config[key] = f
     return config
@@ -140,7 +140,7 @@ def initialize(interactive, verbosity):
     base = config.get('cannula_base')
     ssh_cmd = os.path.join(base, 'bin', 'cannula.sh')
     config['cannula_ssh_cmd'] = ssh_cmd
-    config = write_file(config, 'cannula_ssh_cmd', 'cannula/canner.sh', interactive, logger)
+    config = write_file(config, 'cannula_ssh_cmd', 'cannula/canner.sh', interactive, logger, perm=0755)
     
     # Make sure we have a semi random secret key
     if not config.get('django_secret_key'):
