@@ -72,7 +72,7 @@ class DeployAPI(BaseAPI):
         self.model.objects.create(project=project, user=user, oldrev=oldrev,
             newrev=newrev, conf_oldrev=conf_oldrev, conf_newrev=conf_newrev)
     
-    def deploy(self, project, user, oldrev, newrev):
+    def deploy(self, project, user, oldrev='old', newrev='new'):
         user = api.users.get(user)
         project = api.projects.get(project)
         if not os.path.isfile(project.appconfig):
