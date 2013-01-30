@@ -107,7 +107,7 @@ class Python(Runtime):
         
         py_version = application.get('python_version', sys.executable)
         
-        cmd = 'virtualenv --no-site-packages --distribute --python=%s %s'
+        cmd = 'virtualenv --distribute --python=%s %s'
         
         if not os.path.isdir(project.virtualenv):
             cls.notify("Creating virtual environment for %s" % project)
@@ -116,6 +116,6 @@ class Python(Runtime):
         pip = os.path.join(project.virtualenv, 'bin', 'pip')
         cls.notify("Installing requirements\n")
         
-        cls.call("%s install -r %s" % (pip, requirements))
+        cls.call("%s install -U -r %s" % (pip, requirements))
         
         
