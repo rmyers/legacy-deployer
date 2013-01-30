@@ -1,5 +1,5 @@
 django>=1.4.2
-virtualenv>=1.5.1
+virtualenv>=1.8.0
 PyYAML==3.10
 supervisor==3.0a10
 

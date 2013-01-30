@@ -110,7 +110,7 @@ def add_blank_choice(choices, force=False):
 #    temp = env.get_template(template)
 #    return temp.render(**context)
 
-def write_file(file_name, template, context=None, perm=0644):
+def write_file(file_name, template, context=None, perm='644'):
     if context is None:
         context = {}
     
