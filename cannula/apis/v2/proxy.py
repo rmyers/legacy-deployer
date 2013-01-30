@@ -41,7 +41,7 @@ class Proxy(Configurable):
         self.proxy_base = os.path.join(conf.CANNULA_BASE, 'proxy')
         self.vhost_base = os.path.join(conf.CANNULA_BASE, 'config')
         if conf.CANNULA_PROXY_NEEDS_SUDO:
-            self.cmd = 'sudo %s' % self.cmd
+            self.cmd = 'sudo -n %s' % self.cmd
         self.supervisor_managed = conf.CANNULA_SUPERVISOR_MANAGES_PROXY
         self.context = {
             'cmd': self.cmd,
