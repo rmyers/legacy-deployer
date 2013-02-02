@@ -1,0 +1,42 @@
+application: cannula-project
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+  
+builtins:
+- appstats: on
+- remote_api: on
+- admin_redirect: on
+- deferred: on
+
+inbound_services:
+- warmup
+- channel_presence
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /(favicon.ico|robots.txt)
+  static_files: static/\1
+  upload: /static/(.*)
+
+- url: /.*
+  script: cannula.wsgi.app
+
+skip_files:
+- ^(.*/)?app\.yaml
+- ^(.*/)?app\.yml
+- ^(.*/)?index\.yaml
+- ^(.*/)?index\.yml
+- ^(.*/)?#.*#
+- ^(.*/)?.*~
+- ^(.*/)?.*\.py[co]
+- ^(.*/)?.*/RCS/.*
+- ^(.*/)?\..*
+- ^(.*/)?assets/.*
