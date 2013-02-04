@@ -20,11 +20,11 @@ module.exports = function(grunt) {
     concat: {
       app: {
         src: apps,
-        dest: '../cannula/static/js/app.js'
+        dest: '../static/js/app.js'
       },
       vendor: {
         src: deps,
-        dest: '../cannula/static/js/vendor.js'
+        dest: '../static/js/vendor.js'
       }
     },
 
@@ -32,11 +32,11 @@ module.exports = function(grunt) {
     min: {
       app: {
 	    src: apps,
-        dest: '../cannula/static/js/app.js'
+        dest: '../static/js/app.js'
       },
       vendor: {
         src: deps,
-        dest: '../cannula/static/js/vendor.js'
+        dest: '../static/js/vendor.js'
       }
     },
 
@@ -47,7 +47,7 @@ module.exports = function(grunt) {
             paths: ["assets/bootstrap/less"]
         },
         files: {
-            "../cannula/static/css/main.css": "less/layout.less"
+            "../static/css/main.css": "less/layout.less"
         }
       },
       prod: {
@@ -56,7 +56,7 @@ module.exports = function(grunt) {
             compress: true            
         },
         files: {
-            "../cannula/static/css/main.css": "less/layout.less"
+            "../static/css/main.css": "less/layout.less"
         }
       }
     },
@@ -64,8 +64,8 @@ module.exports = function(grunt) {
 	copy: {
 	  dist: {
 	  	files: {
-	  	  "../cannula/static/img/": "bootstrap/img/*",
-	  	  "../cannula/static/img/": "img/*"
+	  	  "../static/img/": "bootstrap/img/*",
+	  	  "../static/img/": "img/*"
 	  	}
 	  }
 	},
