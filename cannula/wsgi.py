@@ -14,6 +14,7 @@ from collections import defaultdict
 from google.appengine.ext import ndb
 from google.appengine.datastore.datastore_query import Cursor
 from webapp2 import abort
+from webapp2_extras import jinja2
 
 
 class API(webapp2.RequestHandler):
@@ -38,6 +39,16 @@ class API(webapp2.RequestHandler):
         if auth:
             return verify_digest(auth)
         return None
+    
+    @webapp2.cached_property
+    def jinja2(self):
+        return jinja2.get_jinja2(app=self.app)
+    
+    def render(self, filename, context=None, **kwargs):
+        if context is None:
+            context = {}
+        context.update(kwargs)
+        self.response.write(self.jinja2.render_template(filename, **context))
     
     def parse_form(self, form=None):
         """Hook to run the validation on a form"""
@@ -138,7 +149,7 @@ class StoreHandler(API):
 class IndexHandler(API):
     
     def get(self):
-        self.respond_json({'welcome': 'Home dude!'})
+        self.render('cannula/index.html', {'welcome': 'Home dude!'})
 
 ###
 ### Setup the routes for the API
