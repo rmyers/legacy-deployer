@@ -64,8 +64,9 @@ module.exports = function(grunt) {
 	copy: {
 	  dist: {
 	  	files: {
-	  	  "../static/img/": "bootstrap/img/*",
-	  	  "../static/img/": "img/*"
+	  	  "../static/img/": "img/*",
+	  	  "../static/font/": "font-awesome/font/*",
+	  	  "../static/partials/": "partials/*"
 	  	}
 	  }
 	},
@@ -85,7 +86,12 @@ module.exports = function(grunt) {
       vendor: {
         files: 'js/vendor/**/*.js',
         tasks: 'concat:vendor'
-      }
+      },
+      
+      copy_files: {
+      	files: ['img/*', 'font-awesome/font/*', 'partials/*'],
+      	tasks: 'copy:dist'
+      } 
     },
 
     // Run our Jasmine tests

@@ -5,3 +5,4 @@
 cannula.db
 docs/build
 assets/node_modules/*
+static/*

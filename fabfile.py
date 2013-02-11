@@ -82,6 +82,7 @@ def deploy(version='', appid='.'):
         Deploy to a different appid
         $ fab deploy:appid=someotherapp
     """
+    compile()
     yaml_file = os.path.join(appid, 'app.yaml')
     assert os.path.isfile(yaml_file), "Could not find app.yaml file"
     version_str = '-V %s' % version if version else ''
