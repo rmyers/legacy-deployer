@@ -1,19 +1,14 @@
-import webapp2
-import logging
-import json
 import base64
 import datetime
-import time
-import hmac
-import hashlib
-import urlparse
-import re
 from functools import wraps
-from collections import defaultdict
+import json
+import logging
+import time
+from urlparse import urljoin
 
 from google.appengine.ext import ndb
 from google.appengine.datastore.datastore_query import Cursor
-from webapp2 import abort
+import webapp2
 from webapp2_extras import jinja2
 from webapp2_extras import auth
 from webapp2_extras import sessions
@@ -69,8 +64,6 @@ def to_dict(model, exclude=[]):
     return output
 
 
-
-
 def auth_required(func):
 
     @wraps(func)
@@ -86,21 +79,8 @@ def auth_required(func):
     return wrapper
 
 
-class API(webapp2.RequestHandler):
+class BaseHandler(webapp2.RequestHandler):
     
-    endpoint = None
-    model = None
-    form = None
-    exclude = []
-
-
-    def options(self):
-        """Be a good netizen citizen and return HTTP verbs allowed."""
-        valid = ', '.join(webapp2._get_handler_methods(self))
-        self.response.set_status(200)
-        self.response.headers['Allow'] = valid
-        return self.response.out
-
     @webapp2.cached_property
     def session_store(self):
         return sessions.get_store(request=self.request)
@@ -125,7 +105,46 @@ class API(webapp2.RequestHandler):
     @webapp2.cached_property
     def jinja2(self):
         return jinja2.get_jinja2(app=self.app)
+
+    def respond_json(self, message, status_code=200):
+        self.response.set_status(status_code)
+        self.response.headers['Content-type'] = 'application/json'
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        
+        try:
+            resp = json.dumps(message)
+        except:
+            self.response.set_status(500)
+            resp = json.dumps({u'message': u'message not serializable'})
+        
+        return self.response.out.write(resp)
+
+
+class API(BaseHandler):
     
+    endpoint = None
+    model = None
+    form = None
+    exclude = []
+    get_var = '<key:[\w=-]+>'
+
+    def options(self):
+        """Be a good netizen citizen and return HTTP verbs allowed."""
+        valid = ', '.join(webapp2._get_handler_methods(self))
+        self.response.set_status(200)
+        self.response.headers['Allow'] = valid
+        return self.response.out
+
+    
+    @classmethod
+    def kind(cls):
+        if cls.endpoint:
+            return cls.endpoint
+        if cls.model is None:
+            raise AttributeError("Either 'endpoint' or 'model' must be set.")
+        # Get the kind from the model
+        return cls.model._get_kind()
+        
     def render(self, filename, context=None, **kwargs):
         if context is None:
             context = {}
@@ -147,17 +166,16 @@ class API(webapp2.RequestHandler):
 
         return form(data)
     
-    def base_url(self):
-        return self.request.host_url + '/api/v1'
+    @classmethod
+    def uri(cls):
+        return webapp2.uri_for(cls.kind().lower())
     
-    def uri(self):
-        return self.uri_for(self)
-        if self.endpoint:
-            return self.base_url() + self.endpoint
-        #return self.base_url()
-    
-    def resource_uri(self, model):
-        return '%s/%s' % (self.uri(), model.key.id())
+    @classmethod
+    def resource_uri(cls, model=None):
+        """Return the resource pattern or the model resource uri."""
+        if model is None:
+            return '%s/%s' % (cls.uri(), cls.get_var)
+        return '%s/%s' % (cls.uri(), model.key.id())
     
     def serialize(self, model, exclude=[]):
         # Allow models to override the default to_dict
@@ -175,11 +193,11 @@ class API(webapp2.RequestHandler):
         try:
             key = ndb.Key(urlsafe=key)
         except:
-            abort(404)
+            self.abort(404)
             
         obj = key.get()
         if obj is None:
-            abort(404)
+            self.abort(404)
         return self.respond_json(self.serialize(obj, self.exclude))
 
     def fetch_models(self):
@@ -213,31 +231,55 @@ class API(webapp2.RequestHandler):
             resp['next'] = self.uri() + '?limit=%s&cursor=%s&filter=%s' % (limit, next_cursor.urlsafe(), filter_string)
         return self.respond_json(resp)
     
-    def respond_json(self, message, status_code=200):
-        self.response.set_status(status_code)
-        self.response.headers['Content-type'] = 'application/json'
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-        
-        try:
-            resp = json.dumps(message)
-        except:
-            self.response.set_status(500)
-            resp = json.dumps({u'message': u'message not serializable'})
-        
-        return self.response.out.write(resp)
+
+
+class RootHandler(BaseHandler):
+    
+    def _endpoint(self, route):
+        """Return a dict of comment and url for this route."""
+        uri = route.handler.uri()
+        if route.name.startswith('get_'):
+            uri = route.handler.resource_uri()
+        return {
+            'comment': route.handler.__doc__,
+            'uri': uri
+        }
+    
+    def get(self):
+        """Just dish out some helpful uri info."""
+        #TODO: (rmyers) figure out how to do this without globals
+        global api_routes
+        resp = {
+            'comment': api_routes.description,
+            'version': api_routes.version,
+            'uri': api_routes.prefix,
+            'endpoints': [self._endpoint(route) for route in api_routes.routes[1:]]
+        }
+        return self.respond_json(resp)
 
 
 class APIRoutes(object):
     
-    def __init__(self, prefix="/api/"):
+    def __init__(self, prefix="/api/", version='1', description=''):
         self.prefix = prefix
-        self.routes = []
+        self.version = 'api_v%s' % version
+        self.description = description
+        self.routes = [webapp2.Route(prefix, 
+                                     'cannula.wsgi.RootHandler', 
+                                     name=self.version)]
+        
     
     def register(self, handler):
-        if not hasattr(handler, 'model') or handler.model is None:
-            logging.error("Unable to register %s", handler)
-        
-            
+        prefix = self.prefix if self.prefix.endswith('/') else self.prefix + '/'
+        kind = handler.kind().lower()
+        endpoint = urljoin(prefix, kind)
+        self.routes.append(webapp2.Route(endpoint, handler, name=kind))
+        if handler.get_var is not None:
+            get_end = urljoin(prefix, '%s/%s' % (kind, handler.get_var))
+            name = 'get_%s' % kind
+            self.routes.append(webapp2.Route(get_end, handler, name=name))
+    
+
 
 
 class StoreHandler(API):
@@ -257,9 +299,9 @@ class IndexHandler(API):
         self.render('cannula/index.html', {'welcome': 'Home dude!'})
 
 class UserHandler(API):
+    """User Handler"""
     
     model = User
-    endpoint = 'user'
     excludes = ['password', 'auth_ids']
     
     def get(self, key=None):
@@ -268,11 +310,16 @@ class UserHandler(API):
         return self.fetch_models()
 
 ###
-### Setup the routes for the API
+### Main routes for api
+### 
+api_routes = APIRoutes(prefix='/api/v1/', description="Cannula API")
+api_routes.register(UserHandler)
+
 ###
-routes = [
-    webapp2.Route('/api/v1/user', UserHandler),
-    webapp2.Route('/api/v1/user/<key:[\w=-]+>', UserHandler),
+### Setup extra routes
+###
+routes = list(api_routes.routes)
+routes += [
     webapp2.Route('/api/store/', StoreHandler),
     webapp2.Route('/<:.*>', IndexHandler),
 ] 
