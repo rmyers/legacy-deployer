@@ -14,7 +14,7 @@ from webapp2_extras import auth
 from webapp2_extras import sessions
 from webapp2_extras.security import generate_random_string
 
-from cannula.gae.models import User
+from cannula.gae.models import User, Project
 
 SIMPLE_TYPES = (int, long, float, bool, dict, basestring, list)
 
@@ -64,6 +64,11 @@ def to_dict(model, exclude=[]):
     return output
 
 
+def generate_csrf():
+    csrf = generate_random_string(length=32)
+    return base64.b64encode(csrf)
+
+
 def auth_required(func):
 
     @wraps(func)
@@ -80,6 +85,25 @@ def auth_required(func):
 
 
 class BaseHandler(webapp2.RequestHandler):
+    
+    csrf_exempt = False
+    
+    def __init__(self, request, response):
+        response.set_cookie('XSRF-TOKEN', generate_random_string(length=32))
+        self.initialize(request, response)
+
+    def dispatch(self):
+        """Custom dispatch to handle CSRF protection."""
+        is_post = self.request.method in ['POST', 'PUT', 'DELETE']
+        # Allow handlers to exempt themselves
+        if not self.csrf_exempt and is_post:
+            token = self.request.cookies.get('XSRF-TOKEN', None)
+            req_token = self.request.headers.get('X-XSRF-TOKEN', None)
+            logging.info("xsrf check: %s = %s", token, req_token)
+            if not all([token, req_token, token == req_token]):
+                logging.error("xsrf failure: %s != %s", token, req_token)
+                self.abort(403)
+        super(BaseHandler, self).dispatch()
     
     @webapp2.cached_property
     def session_store(self):
@@ -118,23 +142,47 @@ class BaseHandler(webapp2.RequestHandler):
             resp = json.dumps({u'message': u'message not serializable'})
         
         return self.response.out.write(resp)
+        
+    def render(self, filename, context=None, **kwargs):
+        if context is None:
+            context = {}
+        context.update(kwargs)
+        self.response.write(self.jinja2.render_template(filename, **context))
 
+
+class APIMeta(type):
+    """API Metaclass, used to handle url registration."""
+    
+    def __new__(cls, name, bases, dct):
+        parent = dct.get('parent')
+        dct['_children'] = []
+        this = super(APIMeta, cls).__new__(cls, name, bases, dct)
+        if parent is not None:
+            parent._children.append(this)
+        return this
+    
 
 class API(BaseHandler):
     
+    __metaclass__ = APIMeta
+    
+    # Override the default endpoint of self.model._get_kind()
     endpoint = None
+    # The main model of this API
     model = None
-    form = None
+    # Parent handler, used in ancestor query and urls
+    parent = None
+    # exclude fields from serialize method
     exclude = []
-    get_var = '<key:[\w=-]+>'
+    # get regex for getting a single resource
+    get_var = '<:[\w:=-]+>'
 
     def options(self):
-        """Be a good netizen citizen and return HTTP verbs allowed."""
+        """Be a good netizen and return HTTP verbs allowed."""
         valid = ', '.join(webapp2._get_handler_methods(self))
         self.response.set_status(200)
         self.response.headers['Allow'] = valid
         return self.response.out
-
     
     @classmethod
     def kind(cls):
@@ -144,63 +192,68 @@ class API(BaseHandler):
             raise AttributeError("Either 'endpoint' or 'model' must be set.")
         # Get the kind from the model
         return cls.model._get_kind()
-        
-    def render(self, filename, context=None, **kwargs):
-        if context is None:
-            context = {}
-        context.update(kwargs)
-        self.response.write(self.jinja2.render_template(filename, **context))
     
-    def parse_form(self, form=None):
-        """Hook to run the validation on a form"""
-        form = form or self.form
-        if not form:
-            raise AttributeError("Form object missing")
+    @classmethod
+    def url_pattern(cls, for_prefix=False):
+        """Return the url for the route builder.
         
-        # see how we were posted
-        try:
-            data = json.loads(self.request.body)
-        except:
-            # fall back to POST and GET args
-            data = self.request.params
+        Example::
+        
+            >>> SubHandler.url_pattern()
+            '/api/v1/model/<regex>/submodel'
+            >>> SubHandler.url_pattern(for_prefix=True)
+            '/api/v1/model/<regex>/submodel/<regex>'
+        """
+        kind = cls.kind().lower()
+        if cls.parent:
+            prefix = cls.parent.url_pattern(for_prefix=True)
+        else:
+            prefix = cls.prefix
+            
+        if for_prefix and cls.get_var:
+            return '%s/%s/%s' % (prefix, kind, cls.get_var)
+        return '%s/%s' % (prefix, kind)
 
-        return form(data)
-    
     @classmethod
-    def uri(cls):
-        return webapp2.uri_for(cls.kind().lower())
+    def resource_uri(cls, model):
+        """Return the resource pattern or the model."""
+        if cls.parent:
+            if cls.parent.model:
+                prefix = cls.parent.resource_uri(model.parent)
+            else:
+                prefix = cls.parent.url_pattern(for_prefix=True)
+        return '%s/%s/%s' % (prefix, cls.kind().lower(), model.key.id())
     
-    @classmethod
-    def resource_uri(cls, model=None):
-        """Return the resource pattern or the model resource uri."""
-        if model is None:
-            return '%s/%s' % (cls.uri(), cls.get_var)
-        return '%s/%s' % (cls.uri(), model.key.id())
-    
-    def serialize(self, model, exclude=[]):
+    def serialize(self, model):
         # Allow models to override the default to_dict
         if hasattr(self.model, 'serialize'):
-            resp = self.model.serialize(model, exclude)
+            resp = self.model.serialize(model)
         else:
-            resp = to_dict(model, exclude)
+            resp = to_dict(model, self.exclude)
         resp['uri'] = self.resource_uri(model)
         resp['key'] = model.key.urlsafe()
         resp['id'] = model.key.id()
         return resp
 
-    def fetch_model(self, key):
-        # Test if the string is an actual datastore key first
-        try:
-            key = ndb.Key(urlsafe=key)
-        except:
-            self.abort(404)
-            
+    def get_pairs(self, *ids):
+        """Get a list of (kind, id) pairs for this resource."""
+        pairs = []
+        if ids > 1:
+            pairs = self.parent.get_pairs(*ids[:-1])
+        
+        pairs.append((self.kind(), ids[-1]))
+        return pairs
+
+    def fetch(self, pairs):
+        """Fetch and serialize the resource from a list of (kind, id) pairs."""
+        key = ndb.Key(pairs=pairs)
         obj = key.get()
         if obj is None:
             self.abort(404)
-        return self.respond_json(self.serialize(obj, self.exclude))
+        return self.serialize(obj)
 
-    def fetch_models(self):
+    def fetch_models(self, *ids):
+        
         limit = int(self.request.get('limit', 100))
         cursor = self.request.get('cursor', None)
         order = self.request.get('order')
@@ -224,65 +277,86 @@ class API(BaseHandler):
             'limit': limit,
             'filter': filter_string,
             'cursor': next_cursor.urlsafe() if next_cursor else '',
-            'uri': self.uri(),
-            'models': [self.serialize(m, self.exclude) for m in models],
+            'uri': self.url_for(self.kind().lower(), *ids),
+            'models': [self.serialize(m) for m in models],
         }
         if more:
             resp['next'] = self.uri() + '?limit=%s&cursor=%s&filter=%s' % (limit, next_cursor.urlsafe(), filter_string)
         return self.respond_json(resp)
     
-
-
-class RootHandler(BaseHandler):
-    
-    def _endpoint(self, route):
+    @classmethod
+    def _endpoints(cls):
         """Return a dict of comment and url for this route."""
-        uri = route.handler.uri()
-        if route.name.startswith('get_'):
-            uri = route.handler.resource_uri()
-        return {
-            'comment': route.handler.__doc__,
-            'uri': uri
+            
+        yield {
+            'comment': cls.__doc__,
+            'uri': cls.url_pattern()
         }
+        
+        if cls.get_var:
+            yield {
+                'comment': cls.__doc__ + ' resource',
+                'uri': cls.url_pattern(for_prefix=True)
+            }
+
+        for child in cls._children:
+            logging.error(child)
+            yield child._endpoints()
+
+
+class RootHandler(API):
+    """Cannula API"""
+
+    endpoint = 'v1'
+    get_var = None
+    version = 'api_v1'
+    prefix = '/api'
     
     def get(self):
         """Just dish out some helpful uri info."""
-        #TODO: (rmyers) figure out how to do this without globals
-        global api_routes
+        def unwrap(routes, endpoints):
+            # recursively return all routes from the generators
+            for r in endpoints:
+                if isinstance(r, dict):
+                    routes.append(r)
+                else:
+                    unwrap(routes, r)
+            return routes
+            
         resp = {
-            'comment': api_routes.description,
-            'version': api_routes.version,
-            'uri': api_routes.prefix,
-            'endpoints': [self._endpoint(route) for route in api_routes.routes[1:]]
+            'comment': self.__doc__,
+            'version': self.version,
+            'uri': self.url_pattern(),
+            'endpoints': unwrap([], self._endpoints())
         }
         return self.respond_json(resp)
 
 
 class APIRoutes(object):
     
-    def __init__(self, prefix="/api/", version='1', description=''):
+    def __init__(self, prefix="/api/", root=None):
         self.prefix = prefix
-        self.version = 'api_v%s' % version
-        self.description = description
-        self.routes = [webapp2.Route(prefix, 
-                                     'cannula.wsgi.RootHandler', 
-                                     name=self.version)]
+        self.routes = []
+        self.register(self.prefix, root)
         
     
-    def register(self, handler):
-        prefix = self.prefix if self.prefix.endswith('/') else self.prefix + '/'
+    def register(self, prefix, handler):
+        prefix = prefix if prefix.endswith('/') else prefix + '/'
         kind = handler.kind().lower()
-        endpoint = urljoin(prefix, kind)
-        self.routes.append(webapp2.Route(endpoint, handler, name=kind))
+        prefix = urljoin(prefix, kind)
+        self.routes.append(webapp2.Route(prefix, handler, name=kind))
         if handler.get_var is not None:
-            get_end = urljoin(prefix, '%s/%s' % (kind, handler.get_var))
+            prefix = '%s/%s' % (prefix, handler.get_var)
             name = 'get_%s' % kind
-            self.routes.append(webapp2.Route(get_end, handler, name=name))
-    
+            self.routes.append(webapp2.Route(prefix, handler, name=name))
+        
+        # Add all the child routes
+        for child in handler._children:
+            self.register(prefix, child)
 
 
 
-class StoreHandler(API):
+class StoreHandler(BaseHandler):
     """Sentry EntryPoint Handler.
     
     This handles processing events sent by sentry compatable tools.
@@ -293,27 +367,54 @@ class StoreHandler(API):
         logging.error(obj)
 
 
-class IndexHandler(API):
+class IndexHandler(BaseHandler):
     
+    def __init__(self, *args, **kwargs):
+        super(IndexHandler, self).__init__(*args, **kwargs)
+        self.response.set_cookie('foo', 'blahs')
+        
     def get(self, *args, **kwargs):
         self.render('cannula/index.html', {'welcome': 'Home dude!'})
 
+class SigninHandler(BaseHandler):
+    
+    def post(self, *args, **kwargs):
+        logging.error(self.request.params)
+
+class SignupHandler(BaseHandler):
+    
+    def post(self, *args, **kwargs):
+        logging.error(self.request.params)
+
 class UserHandler(API):
     """User Handler"""
-    
+
     model = User
+    parent = RootHandler
     excludes = ['password', 'auth_ids']
     
+    #@auth_required
     def get(self, key=None):
         if key:
             return self.fetch_model(key)
         return self.fetch_models()
 
+class ProjectHandler(API):
+    """Project Handler"""
+
+    model = Project
+    parent = UserHandler
+    
+    #@auth_required
+    def get(self, *ids):
+        if len(ids) > 1:
+            return self.fetch_model(*ids)
+        return self.fetch_models(*ids)
+
 ###
 ### Main routes for api
 ### 
-api_routes = APIRoutes(prefix='/api/v1/', description="Cannula API")
-api_routes.register(UserHandler)
+api_routes = APIRoutes(prefix='/api/', root=RootHandler)
 
 ###
 ### Setup extra routes
@@ -321,6 +422,8 @@ api_routes.register(UserHandler)
 routes = list(api_routes.routes)
 routes += [
     webapp2.Route('/api/store/', StoreHandler),
+    webapp2.Route('/accounts/login/', SigninHandler),
+    webapp2.Route('/accounts/signup/', SignupHandler),
     webapp2.Route('/<:.*>', IndexHandler),
 ] 
 

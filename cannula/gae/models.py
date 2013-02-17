@@ -34,4 +34,8 @@ class User(BaseUser):
         
         self.password = security.generate_password_hash(new_password, length=12)
         self.put()
+
+
+class Project(ndb.Model):
     
+    name = ndb.StringProperty()
