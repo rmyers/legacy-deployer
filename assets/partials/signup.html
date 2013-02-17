@@ -1,0 +1,16 @@
+<div class="container">
+
+  <form class="form-signin" name="loginForm" ng-submit="submit()">
+    <h2 class="form-signin-heading">Account Signup</h2>
+    <p>Free trial account for 7 days.</p>
+    <div class="alert alert-error" ng-show="error">
+      {{ error }}
+    </div>
+    <input type="email" ng-model="user.email" class="input-block-level" placeholder="Email address" required />
+    <input type="text" ng-model="user.name" class="input-block-level"  placeholder="Name" required />
+    <input type="password" ng-model="user.password" ng-minlength="3" class="input-block-level" placeholder="Password" required />
+    <input type="password" ng-model="user.confirm" ng-minlength="3" class="input-block-level" placeholder="Confirm Password" required />
+    <input class="btn btn-small btn-primary" type="submit" value="Sign in" ng-disabled="!loginForm.$valid">
+  </form>
+
+</div>
