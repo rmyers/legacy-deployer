@@ -1,0 +1,130 @@
+{
+	u'project': u'1', 
+	u'sentry.interfaces.User': {
+		u'is_authenticated': False
+	}, 
+	u'sentry.interfaces.Exception': {
+		u'type': u'NameError', 
+		u'module': u'exceptions', 
+		u'value': u"global name 'boo' is not defined"
+	}, 
+	u'culprit': u'july.views in index', 
+	u'server_name': u'MJC044F686', 
+	u'level': 40, 
+	u'event_id': u'827ec906c08a4d0fa1698607b8a58e7b', 
+	u'checksum': u'7311f07718edb66a50b908ee4ad879a8', 
+	u'extra': {
+		u'sys.argv': [u'manage.py', u'runserver']
+	}, 
+	u'modules': {
+		u'raven': u'3.1.8', 
+		u'debug_toolbar': u'0.9.4', 
+		u'social_auth': u'0.7.12', 
+		u'south': u'0.7.6', 
+		u'django': u'1.5b1'
+	}, 
+	u'time_spent': None, 
+	u'platform': u'python', 
+	u'sentry.interfaces.Http': {
+		u'cookies': {
+			u'csrftoken': u'n2xc5m3f80SxOHKnlpgazLYHz8sRwWcN', 
+			u'sessionid': u'gAJ9cQEu:1U1e4O:IU_Ald4J9iZbNdibXWH7MFLmfZY', 
+			u'dev_appserver_login': u'test@example.com:True:185804764220139124118'
+		}, 
+		u'url': u'http://localhost:8000/', 
+		u'headers': {
+			u'Content-Length': u'', 
+			u'Accept-Language': u'en-US,en;q=0.8', 
+			u'Accept-Encoding': u'gzip,deflate,sdch', 
+			u'Connection': u'keep-alive', 
+			u'Accept': u'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 
+			u'User-Agent': u'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17', 
+			u'Accept-Charset': u'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 
+			u'Host': u'localhost:8000', 
+			u'Cookie': u'dev_appserver_login="test@example.com:True:185804764220139124118"; csrftoken=n2xc5m3f80SxOHKnlpgazLYHz8sRwWcN; sessionid="gAJ9cQEu:1U1e4O:IU_Ald4J9iZbNdibXWH7MFLmfZY"', 
+			u'Cache-Control': u'max-age=0', 
+			u'Content-Type': u'text/plain'
+		}, 
+		u'env': {
+			u'SERVER_NAME': u'1.0.0.127.in-addr.arpa', 
+			u'SERVER_PORT': u'8000', 
+			u'REMOTE_ADDR': u'127.0.0.1'
+		}, 
+		u'query_string': u'', 
+		u'data': None, 
+		u'method': u'GET'
+	}, 
+	u'timestamp': u'2013-02-02T14:28:32Z', 
+	u'sentry.interfaces.Stacktrace': {
+		u'frames': [
+			{
+				u'function': u'get_response', 
+				u'abs_path': u'/Users/robe5515/envs/julython/lib/python2.7/site-packages/django/core/handlers/base.py', 
+				u'pre_context': [
+					u'                        if response:', 
+					u'                            break', 
+					u'', 
+					u'                if response is None:', 
+					u'                    try:'], 
+				u'vars': {
+					u'e': u'NameError("global name \'boo\' is not defined",)', 
+					u'callback_args': [], 
+					u'resolver_match': u"ResolverMatch(func=<function index at 0x1032a2140>, args=(), kwargs={}, url_name='index', app_name='None', namespace='')", 
+					u'settings': u'<django.conf.LazySettings object at 0x101ec32d0>', 
+					u'middleware_method': u'<bound method DebugToolbarMiddleware.process_view of <debug_toolbar.middleware.DebugToolbarMiddleware object at 0x102812c50>>', 
+					u'self': u'<django.core.handlers.wsgi.WSGIHandler object at 0x1027fa750>', 
+					u'request': u"<WSGIRequest\npath:/,\nGET:<QueryDict: {}>,\nPOST:<QueryDict: {}>,\nCOOKIES:{'csrftoken': 'n2xc5m3f80SxOHKnlpgazLYHz8sRwWcN',\n 'dev_appserver_login': 'test@example.com:True:185804764220139124118',\n 'sessionid': 'gAJ9cQEu:1U1e4O:IU_Ald4J9iZbNdibXWH7MFLmfZY'},\nMETA:{'Apple_PubSub_Socket_Render': '/tmp/launch-6MRDz2/Render',\n 'Apple_Ubiquity_Message': '/tmp/launch-l90nQU/Apple_Ubiquity_Message',\n 'COMMAN", 
+					u'urlresolvers': u"<module 'django.core.urlresolvers' from '/Users/robe5515/envs/julython/lib/python2.7/site-packages/django/core/urlresolvers.pyc'>", 
+					u'callback': u'<function index at 0x1032a2140>', 
+					u'resolver': u"<RegexURLResolver <module 'urlconf' (built-in)> (None:None) ^/>", 
+					u'exceptions': u"<module 'django.core.exceptions' from '/Users/robe5515/envs/julython/lib/python2.7/site-packages/django/core/exceptions.pyc'>", 
+					u'callback_kwargs': {}, 
+					u'response': None, 
+					u'urlconf': u"<module 'urlconf' (built-in)>"
+				}, 
+				u'module': u'django.core.handlers.base', 
+				u'filename': u'django/core/handlers/base.py', 
+				u'post_context': [
+					u'                    except Exception as e:', 
+					u'                        # If the view raised an exception, run it through exception', 
+					u'                        # middleware, and if the exception middleware returns a', 
+					u'                        # response, use that. Otherwise, reraise the exception.', 
+					u'                        for middleware_method in self._exception_middleware:'
+				], 
+				u'in_app': False, 
+				u'context_line': u'                        response = callback(request, *callback_args, **callback_kwargs)', 
+				u'lineno': 116
+			},
+			{
+				u'function': u'index', 
+				u'abs_path': u'/Users/robe5515/workspace/julython.org/july/views.py', 
+				u'pre_context': [
+					u'', 
+					u'def index(request):', 
+					u'    """Render the home page"""', 
+					u'    game = Game.active_or_latest()', 
+					u'    stats = game.histogram'
+				], 
+				u'vars': {
+					u'request': u"<WSGIRequest\npath:/,\nGET:<QueryDict: {}>,\nPOST:<QueryDict: {}>,\nCOOKIES:{'csrftoken': 'n2xc5m3f80SxOHKnlpgazLYHz8sRwWcN',\n 'dev_appserver_login': 'test@example.com:True:185804764220139124118',\n 'sessionid': 'gAJ9cQEu:1U1e4O:IU_Ald4J9iZbNdibXWH7MFLmfZY'},\nMETA:{'Apple_PubSub_Socket_Render': '/tmp/launch-6MRDz2/Render',\n 'Apple_Ubiquity_Message': '/tmp/launch-l90nQU/Apple_Ubiquity_Message',\n 'COMMAN", 
+					u'game': u'<Game: Testathon 2012>', 
+					u'stats': [u'5', u'6', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0', u'0']
+				}, 
+				u'module': u'july.views', 
+				u'filename': u'july/views.py', 
+				u'post_context': [
+					u'    ctx = Context({', 
+					u"        'stats': json.dumps(stats),",
+					u"        'game': game,", 
+					u"        'total': sum(stats),", 
+					u"        'user': request.user,"
+				], 
+				u'in_app': True, 
+				u'context_line': u'    boo', 
+				u'lineno': 16
+			}
+		]
+	}, 
+	u'message': u"NameError: global name 'boo' is not defined", 
+	u'tags': {}
+}

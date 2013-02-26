@@ -19,6 +19,11 @@
               <a href="/people">People</a>
             </li>
           </ul>
+          <ul class="nav pull-right">
+          	<li>
+          	  <a href="/signin">Signin</a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -29,8 +34,8 @@
 	    <div class="alert alert-error" ng-show="error">
           {{ error }}
         </div>
-	    <input type="email" class="input-block-level" placeholder="Email address">
-	    <input type="password" class="input-block-level" placeholder="Password">
+	    <input type="email" ng-model="user.email" class="input-block-level" placeholder="Email address">
+	    <input type="password" ng-model="user.password" class="input-block-level" placeholder="Password">
 	    <label class="checkbox">
 	      <input type="checkbox" value="remember-me"> Remember me
 	    </label>
@@ -40,10 +45,6 @@
       </div>
     </div>
     <div class="container-fluid" ng-view></div>
-
-    <!-- In production use:
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
-    -->
     {% endraw %}
     <script src="/static/js/vendor.js"></script>
     <script src="/static/js/app.js"></script>
