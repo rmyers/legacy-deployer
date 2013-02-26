@@ -61,7 +61,8 @@ function LoginController($scope, $http, authService, $location) {
 	};
 };
 
+MainCntl.$inject = ['$scope', '$route', '$routeParams', '$location'];
 DashboardController.$inject = [];
-LoginController.$inject = ['$scope', '$http', 'authService', '$location']
+LoginController.$inject = ['$scope', '$http', 'authService', '$location'];
 PeopleController.$inject = ['$resource', '$scope', 'People'];
-SignupController.$inject = ['$scope', '$http', 'authService']
+SignupController.$inject = ['$scope', '$http', 'authService'];
