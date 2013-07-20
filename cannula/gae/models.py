@@ -17,7 +17,7 @@ from webapp2_extras import auth
 
 class SSHKeyProperty(ndb.BlobProperty):
     """Special Property to handle ssh keys."""
-    
+
     def _validate(self, value):
         parts = value.split()
         if not parts[0] in ['ssh-rsa', 'ssh-dsa']:
@@ -41,28 +41,38 @@ class SSHKeyProperty(ndb.BlobProperty):
 
 class User(BaseUser):
 
-    first_name = ndb.StringProperty()
-    last_name = ndb.StringProperty()
+    name = ndb.StringProperty()
     accounts = ndb.StringProperty(repeated=True)
-    
+    auth_token = ndb.StringProperty()
+    is_admin = ndb.BooleanProperty(default=False)
+
     @property
     def email(self):
         return self._grab_auth_id('email')
-        
+
+    @property
+    def picture_url(self):
+        """Return a link to gravatar image."""
+        url = 'http://www.gravatar.com/avatar/%s?s=48'
+        from hashlib import md5
+        email = self.email.strip().lower()
+        hashed = md5(email).hexdigest()
+        return url % hashed
+
     def _grab_auth_id(self, kind):
         """helper method to return the first auth_id of a certain kind"""
         uid = None
-        for auth in self.auth_ids:
-            if auth.startswith('%s:' % kind):
-                _, uid = auth.split(':')
+        for auth_id in self.auth_ids:
+            if auth_id.startswith('%s:' % kind):
+                _, uid = auth_id.split(':')
                 break
         return uid
-    
+
     def update_password(self, password, new_password):
         """Update the password for the user if the existing password matches."""
         if not security.check_password_hash(password, self.password):
             raise auth.InvalidPasswordError()
-        
+
         self.password = security.generate_password_hash(new_password, length=12)
         self.put()
 
@@ -80,29 +90,35 @@ ACCOUNT_LEVELS = {
     ENTERPRISE: 'Enterprise',
 }
 
-class Account(ndb.Model):
+
+class Account(BaseUser):
     """Stores payment and namespace info, handles rate limits."""
-    
+
     namespace = ndb.StringProperty(required=True)
     stripe_info = ndb.TextProperty()
     level = ndb.IntegerProperty(choices=ACCOUNT_LEVELS.keys())
-    
+
     def __unicode__(self):
         return self.namespace
 
+    def delete(self):
+        # Delete the auth id first
+        unique = 'Account.auth_id:%s' % self.namespace
+        self.unique_model.delete_multi([unique])
+        return super(Account, self).delete()
+        
 
 class SSHKey(ndb.Model):
     name = ndb.StringProperty(indexed=False)
     ssh_key = SSHKeyProperty(indexed=False)
-    
+
     def __unicode__(self):
         return self.name
 
 
 class Project(ndb.Model):
-    
+
     name = ndb.StringProperty()
-    
 
     def __unicode__(self):
         return self.name
@@ -114,7 +130,7 @@ levels = [
     logging.DEBUG,
     logging.FATAL,
     logging.INFO,
-    logging.WARN, 
+    logging.WARN,
 ]
 
 
@@ -123,8 +139,8 @@ class EventBase(ndb.Model):
     Abstract base class for both Event and Group.
     """
     logger = ndb.StringProperty(default='root', indexed=True)
-    level = ndb.IntegerProperty(choices=levels, 
-        default=logging.ERROR, indexed=True)
+    level = ndb.IntegerProperty(choices=levels, default=logging.ERROR,
+                                indexed=True)
     message = ndb.TextProperty(indexed=False)
     culprit = ndb.StringProperty(indexed=False)
     num_comments = ndb.IntegerProperty(default=0, indexed=False)
@@ -184,4 +200,3 @@ class Event(EventBase):
         for k, v in sorted(self.data.iteritems()):
             data[k] = v
         return data
-

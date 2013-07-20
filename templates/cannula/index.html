@@ -5,13 +5,14 @@
     <title>My AngularJS App</title>
     <link rel="stylesheet" href="/static/css/main.css"/>
   </head>
-  {% raw %}
   <body ng-controller="MainCntl" ng-class="$route.current.scope.page">
+    {% raw %}
     <div class="navbar navbar-fixed-top" id="topnav" ng-class="$route.current.scope.page">
-      <div class="navbar-inner">
+      <div class="navbar-inner" ng-controller="PageController">
         <div class="container-fluid">
-          <a class="brand" href="/">Cannula</a>
-          <ul class="nav">
+          <a class="brand" href="/dashboard" ng-show="account.name">{{ namespace }}</a>
+          <a class="brand" href="/" ng-hide="account.name">{{ namespace }}</a>
+          <ul class="nav" ng-show="account.name">
             <li>
               <a href="/dashboard">Dashboard</a>
             </li>
@@ -20,9 +21,21 @@
             </li>
           </ul>
           <ul class="nav pull-right">
-          	<li>
+          	<li class="dropdown" ng-show="account.name">       	   	
+	           <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+	           	<img class="icon" ng-src="{{account.picture_url}}" /> {{ account.name }} <b class="caret"></b></a>
+	           <ul class="dropdown-menu">
+	              <li><a href="/edit">Edit Profile</a></li>
+	              <li ng-repeat="account in account.accounts">
+	              	<a target="_" ng-href="/accounts/namespace/?namespace={{account}}">{{ account }}</a>
+	              </li>
+	              <li class="divider"></li>
+	              <li><a target="_" href="/accounts/signout/">Signout</a></li>
+	           </ul>
+	        </li>
+	        <li ng-hide="account.name">
           	  <a href="/signin">Signin</a>
-            </li>
+	        </li>
           </ul>
         </div>
       </div>
@@ -44,9 +57,20 @@
         <p>Or <a href="/signup" data-dismiss="modal">Sign Up</a> for a trial account.</p>
       </div>
     </div>
-    <div class="container-fluid" ng-view></div>
+    <div ng-view></div>
     {% endraw %}
     <script src="/static/js/vendor.js"></script>
     <script src="/static/js/app.js"></script>
+    <script>
+    	function PageController($scope, User) {
+    		$scope.account = User;
+    		{% if user %}
+    		$scope.account = {{ user|safe }};
+    		$scope.namespace = '{{ namespace }}';
+    		{% else %}    		
+    		$scope.namespace = 'Canula';    		
+    		{% endif %}
+    	}
+    </script>
   </body>
 </html>

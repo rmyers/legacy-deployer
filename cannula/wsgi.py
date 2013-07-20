@@ -3,11 +3,10 @@ import datetime
 from functools import wraps
 import json
 import logging
-import re
 import time
 from urlparse import urljoin
 
-from google.appengine.api.datastore_errors import Error, BadValueError
+from google.appengine.api.datastore_errors import Error
 from google.appengine.api import namespace_manager
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
@@ -17,7 +16,7 @@ from webapp2_extras import auth
 from webapp2_extras import sessions
 from webapp2_extras.security import generate_random_string
 
-from cannula.gae.models import User, Project, SSHKey, Group, Account
+from cannula.gae.models import User, Project, SSHKey, Group, Account, Event
 
 SIMPLE_TYPES = (int, long, float, bool, dict, basestring, list)
 
@@ -29,11 +28,11 @@ except ImportError:
 
 def to_dict(model, exclude=[]):
     """
-    Stolen from stackoverflow: 
+    Stolen from stackoverflow:
     http://stackoverflow.com/questions/1531501/json-serialization-of-google-app-engine-models
     """
     output = {}
-    
+
     def encode(output, key, model):
         value = getattr(model, key)
 
@@ -51,14 +50,14 @@ def to_dict(model, exclude=[]):
         else:
             raise ValueError('cannot encode property: %s', key)
         return output
-    
+
     for key in model.to_dict().iterkeys():
         output = encode(output, key, model)
-    
+
     if isinstance(model, ndb.Expando):
         for key in model._properties.iterkeys():
             output = encode(output, key, model)
-    
+
     # remove any fields we don't want to display
     for f in exclude:
         if f in output:
@@ -89,7 +88,7 @@ def auth_required(func):
 
 def parameter(name, _type, required=True, default=None):
     """Decorator to handle POST/GET parsing into kwargs."""
-    
+
     def inner(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -107,11 +106,11 @@ def parameter(name, _type, required=True, default=None):
             return func(self, *args, **kwargs)
         return wrapper
     return inner
-                
+
 
 def cast_int(items):
     """Turn the list of items into integers if possible.
-    
+
     >>> t = cast_int(['1', '2', 'abc'])
     >>> print t
     [1, 2, 'abc']
@@ -121,15 +120,14 @@ def cast_int(items):
             return int(arg)
         except ValueError:
             return arg
-    
+
     return map(cast, items)
-        
 
 
 class BaseHandler(webapp2.RequestHandler):
-    
+
     csrf_exempt = False
-    
+
     def __init__(self, request, response):
         response.set_cookie('XSRF-TOKEN', generate_random_string(length=32))
         self.initialize(request, response)
@@ -155,7 +153,7 @@ class BaseHandler(webapp2.RequestHandler):
         finally:
             # Save all sessions.
             self.session_store.save_sessions(self.response)
-    
+
     @webapp2.cached_property
     def session_store(self):
         return sessions.get_store(request=self.request)
@@ -164,7 +162,7 @@ class BaseHandler(webapp2.RequestHandler):
     def session(self):
         # Returns a session using the default cookie key.
         return self.session_store.get_session()
-    
+
     @webapp2.cached_property
     def auth(self):
         return auth.get_auth()
@@ -185,25 +183,30 @@ class BaseHandler(webapp2.RequestHandler):
         self.response.set_status(status_code)
         self.response.headers['Content-type'] = 'application/json'
         self.response.headers['Access-Control-Allow-Origin'] = '*'
-        
+
         try:
             resp = json.dumps(message)
         except:
             self.response.set_status(500)
             resp = json.dumps({u'message': u'message not serializable'})
-        
         return self.response.out.write(resp)
-        
+
     def render(self, filename, context=None, **kwargs):
+        DEFAULT = {
+            'user': json.dumps(self.user) if self.user else '',
+            'namespace': self.session.get('namespace'),
+            'STATIC_URL': '/static/',  # TODO: (rmyers) stick in settings?
+        }
         if context is None:
             context = {}
+        context.update(DEFAULT)
         context.update(kwargs)
         self.response.write(self.jinja2.render_template(filename, **context))
 
 
 class APIMeta(type):
     """API Metaclass, used to handle url registration."""
-    
+
     def __new__(cls, name, bases, dct):
         parent = dct.get('parent')
         # Our Children
@@ -215,13 +218,11 @@ class APIMeta(type):
             parent._children.append(this)
             this._depth = parent._depth + 1
         return this
-    
+
 
 class API(BaseHandler):
     """API Handler"""
-    
     __metaclass__ = APIMeta
-    
     # Override the default endpoint of self.model._get_kind()
     endpoint = None
     # The main model of this API
@@ -239,7 +240,7 @@ class API(BaseHandler):
         self.response.set_status(200)
         self.response.headers['Allow'] = valid
         return self.response.out
-    
+
     @classmethod
     def kind(cls):
         if cls.endpoint:
@@ -248,13 +249,13 @@ class API(BaseHandler):
             raise AttributeError("Either 'endpoint' or 'model' must be set.")
         # Get the kind from the model
         return cls.model._get_kind()
-    
+
     @classmethod
     def url_pattern(cls, for_prefix=False):
         """Return the url for the route builder.
-        
+
         Example::
-        
+
             >>> SubHandler.url_pattern()
             '/api/v1/model/<regex>/submodel'
             >>> SubHandler.url_pattern(for_prefix=True)
@@ -269,7 +270,7 @@ class API(BaseHandler):
                 prefix = urljoin('http://%s' % request.host, cls.prefix)
             except:
                 prefix = cls.prefix
-            
+
         if for_prefix and cls.get_var:
             return '%s/%s/%s' % (prefix, kind, cls.get_var)
         return '%s/%s' % (prefix, kind)
@@ -285,7 +286,7 @@ class API(BaseHandler):
         if not isinstance(model, ndb.Key):
             model = model.key
         return '%s/%s/%s' % (prefix, cls.kind().lower(), model.id())
-    
+
     def serialize(self, model):
         # Allow models to override the default to_dict
         if hasattr(self.model, 'serialize'):
@@ -320,7 +321,6 @@ class API(BaseHandler):
         return self.serialize(obj)
 
     def fetch_models(self, *ids, **kwargs):
-        
         limit = int(self.request.get('limit', 100))
         cursor = self.request.get('cursor', None)
         parent_key = kwargs.get('parent_key')
@@ -333,7 +333,7 @@ class API(BaseHandler):
 
         if cursor:
             cursor = Cursor(urlsafe=cursor)
-        
+
         # allow subclasses to modify the query through GET args
         if hasattr(self, 'handle_args'):
             query = self.handle_args(query, **self.request.GET)
@@ -350,10 +350,10 @@ class API(BaseHandler):
         if more:
             q = self.request.GET.copy()
             q['cursor'] = next_cursor.urlsafe()
-            query_str = '&'.join(['%s=%s' % (k,v) for k, v in q.iteritems()])
+            query_str = '&'.join(['%s=%s' % (k, v) for k, v in q.iteritems()])
             resp['next'] = '%s?%s' % (uri, query_str)
         return resp
-    
+
     @auth_required
     def get(self, *ids):
         """Standard GET"""
@@ -366,7 +366,7 @@ class API(BaseHandler):
             pairs = self.parent.get_pairs(*ids)
             pkey = ndb.Key(pairs=pairs)
             return self.respond_json(self.fetch_models(*ids, parent_key=pkey))
-        
+
         return self.respond_json(self.fetch_models())
 
     @auth_required
@@ -412,17 +412,17 @@ class API(BaseHandler):
             logging.exception("Datastore Error")
             return self.respond_json({'message': unicode(e.message)}, 400)
         self.respond_json(self.serialize(model))
-    
+
     @classmethod
     def _endpoints(cls):
         """Return a dict of comment and url for this route."""
         docstring = cls.__doc__ or cls.kind().title()
-        
+
         yield {
             'comment': docstring,
             'uri': cls.url_pattern()
         }
-        
+
         if cls.get_var:
             yield {
                 'comment': docstring + ' Resource',
@@ -441,7 +441,7 @@ class RootHandler(API):
     get_var = None
     version = 'api_v1'
     prefix = '/api'
-    
+
     def get(self):
         """Just dish out some helpful uri info."""
         def unwrap(routes, endpoints):
@@ -452,7 +452,7 @@ class RootHandler(API):
                 else:
                     unwrap(routes, r)
             return routes
-            
+
         resp = {
             'comment': self.__doc__,
             'version': self.version,
@@ -463,13 +463,12 @@ class RootHandler(API):
 
 
 class APIRoutes(object):
-    
+
     def __init__(self, prefix="/api/", root=None):
         self.prefix = prefix
         self.routes = []
         self.register(self.prefix, root)
-        
-    
+
     def register(self, prefix, handler):
         prefix = prefix if prefix.endswith('/') else prefix + '/'
         kind = handler.kind().lower()
@@ -479,35 +478,36 @@ class APIRoutes(object):
             prefix = '%s/%s' % (prefix, handler.get_var)
             name = 'get_%s' % kind
             self.routes.append(webapp2.Route(prefix, handler, name=name))
-        
+
         # Add all the child routes
         for child in handler._children:
             self.register(prefix, child)
 
 
-
 class StoreHandler(BaseHandler):
     """Sentry EntryPoint Handler.
-    
+
     This handles processing events sent by sentry compatable tools.
     """
-    
+
     def post(self):
-        obj = json.loads(base64.b64decode(self.request.body).decode('zlib'))
-        logging.error(obj)
+        try:
+            obj = json.loads(base64.b64decode(self.request.body).decode('zlib'))
+        except:
+            logging.error("Improper Format")
 
 
 class IndexHandler(BaseHandler):
-    
+
     def __init__(self, *args, **kwargs):
         super(IndexHandler, self).__init__(*args, **kwargs)
-        self.response.set_cookie('foo', 'blahs')
-        
+
     def get(self, *args, **kwargs):
-        self.render('cannula/index.html', {'welcome': 'Home dude!'})
+        self.render('cannula/index.html', {})
+
 
 class SigninHandler(BaseHandler):
-    
+
     @parameter('email', unicode)
     @parameter('password', unicode)
     def post(self, email, password):
@@ -515,24 +515,24 @@ class SigninHandler(BaseHandler):
         namespace_manager.set_namespace('')
         auth_id = 'email:%s' % email
         try:
-            self.auth.get_user_by_password(auth_id, password)
+            user = self.auth.get_user_by_password(auth_id, password)
+            self.session['namespace'] = user.get('accounts')[0]
         except:
+            logging.exception("Foo")
             resp = {'message': "Email or Password Incorrect!"}
             return self.respond_json(resp, 400)
 
         return self.respond_json(self.user)
 
-class SignupHandler(BaseHandler):
+
+class SignoutHandler(BaseHandler):
     
-    @ndb.transactional
-    def _create_account(self, name, level=1):
-        acc_key = ndb.Key('Account', name)
-        if acc_key.get():
-            return None
-        account = Account(key=acc_key, namespace=name, level=int(level))
-        return account.put()
-        
-    
+    def get(self):
+        self.auth.unset_session()
+        self.redirect('/')
+
+class SignupHandler(BaseHandler):        
+
     @parameter('name', unicode)
     @parameter('email', unicode)
     @parameter('password', unicode)
@@ -543,22 +543,33 @@ class SignupHandler(BaseHandler):
         # Users and Accounts are in the global namespace.
         namespace_manager.set_namespace('')
 
-        account = self._create_account(username, level)
-        if account is None:
+        # Attempt to create the Account
+        acc_attrs = {
+            'auth_id': 'namespace:%s' % username,
+            'namespace': username,
+            'level': level,
+        }
+        created, account = Account.create_user(**acc_attrs)
+        if not created:
             resp = {
                 'message': u'An account with that username exists!',
                 'field': u'account_name',
             }
             return self.respond_json(resp, 400)
-        
+
+        # Create an auth token for the account.
+        auth_token = Account.create_auth_token(account.get_id())
+
         # Attempt to create the User
         attrs = {
             'auth_id': 'email:%s' % email,
             'name': name,
+            'auth_token': auth_token,
             'password_raw': password,
+            'accounts': [username]
         }
         created, user = User.create_user(**attrs)
-        
+
         if not created:
             # Transaction rollback!
             account.delete()
@@ -567,32 +578,41 @@ class SignupHandler(BaseHandler):
                 'field': u'email',
             }
             return self.respond_json(resp, 400)
-        
-        self.respond_json(to_dict(user), 201)
-        
+
+        # Create a token for the account
+        # Log the new user in
+        auth_id = 'email:%s' % email
+        self.auth.get_user_by_password(auth_id, password)
+        namespace_manager.set_namespace(username)
+        self.session['namespace'] = username
+        self.session['account_key'] = account.key()
+        self.respond_json(self.user, 201)
+
 
 class ProfileHandler(BaseHandler):
-    
+
     def post(self, *args, **kwargs):
         logging.error(self.request.params)
 
 
 class NamespaceHandler(BaseHandler):
-    
+
     def get(self, *args, **kwargs):
         namespace = self.request.get('namespace')
+        if not self.user['is_admin'] and namespace not in self.user['accounts']:
+            self.abort(403)
         namespace_manager.set_namespace(namespace)
         self.session['namespace'] = namespace
         logging.error(self.session.items())
-        self.redirect('/')
+        self.redirect('/dashboard')
 
     def post(self, *args, **kwargs):
-        logging.error(self.request.params)
         namespace = self.request.get('namespace')
-        if not self.user.is_admin or namespace not in self.user.namespaces:
+        if not self.user['is_admin'] and namespace not in self.user['accounts']:
             self.abort(403)
         namespace_manager.set_namespace(namespace)
-        self.redirect('/')
+        self.redirect('/dashboard')
+
 
 class UserHandler(API):
     """User Handler"""
@@ -600,28 +620,28 @@ class UserHandler(API):
     model = User
     parent = RootHandler
     excludes = ['password', 'auth_ids']
-    csrf_exempt = True
+
 
 class ProjectHandler(API):
     """Project Handler"""
 
     model = Project
-    parent = UserHandler
-    csrf_exempt = True
+    parent = RootHandler
+
 
 class KeyHandler(API):
-    
+
     model = SSHKey
     parent = UserHandler
-    csrf_exempt = True    
+
 
 class GroupHandler(API):
-    
+    """Group of alerts."""
+
     model = Group
     parent = RootHandler
-    csrf_exempt = True
     methods = ['GET', 'PUT', 'OPTIONS', 'HEAD']
-    
+
     def handle_args(self, query, project=None, **kwargs):
         if project is not None:
             try:
@@ -630,12 +650,18 @@ class GroupHandler(API):
             except:
                 pass
         return query
-        
-        
 
+
+class EventHandler(API):
+    """Individual Events"""
+    
+    model = Event
+    parent = GroupHandler
+    
+    
 ###
 ### Main routes for api
-### 
+###
 api_routes = APIRoutes(prefix='/api/', root=RootHandler)
 
 ###
@@ -646,26 +672,29 @@ routes += [
     webapp2.Route('/api/store/', StoreHandler),
     webapp2.Route('/accounts/signin/', SigninHandler),
     webapp2.Route('/accounts/signup/', SignupHandler),
+    webapp2.Route('/accounts/signout/', SignoutHandler),
     webapp2.Route('/accounts/profile/', ProfileHandler),
     webapp2.Route('/accounts/namespace/', NamespaceHandler),
     webapp2.Route('/<:.*>', IndexHandler),
-] 
+]
 
-### 
+###
 ### Application configuration
 ###
 config = {
     'webapp2_extras.auth': {
         'user_model': 'cannula.gae.models.User',
         'cookie_name': 'cannula_auth',
-        'user_attributes': ['name']
+        'user_attributes': [
+            'name', 'accounts', 'is_admin', 'email', 'picture_url', 'auth_token'
+        ]
     },
     'webapp2_extras.sessions': {
         'secret_key': SECRET_KEY,
         'backend': 'securecookie',
         'cookie_name': 'cannula_session'
     },
-    'webapp2_extras.jinja2' : {
+    'webapp2_extras.jinja2': {
         'template_path': [
             'templates',
             'cannula/templates',
