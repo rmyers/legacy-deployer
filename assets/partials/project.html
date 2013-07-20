@@ -1,0 +1,35 @@
+   <div class="container-fluid" ng-controller="ProjectController">
+   	
+      <div class="row-fluid">
+        
+        <div class="span10">
+            <h1><i class="icon-bullhorn"></i> {{ myProject.name }}</h1>
+            <div class="well">
+	            <p>Project DSN: http://{{ account.id }}:{{ account.auth_token }}@cannula-project.appspot.com/{{ myProject.id}}</p>
+	        </div>
+        
+        </div><!--/span-->
+        <div class="span2">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Projects</li>
+              <li ng-repeat="project in projects"><a ng-href="/project/{{ project.id }}"><i class="icon-cloud"></i> {{ project.name }}</a></li>
+              <form class="form" name="loginForm" ng-submit="submit()">
+			    <div class="alert alert-error" ng-show="error">
+			      {{ error }}
+			    </div>
+			    <input type="text" ng-model="project.name" class="input-block-level" placeholder="New Project" required />
+			    <input class="btn btn-small btn-primary" type="submit" value="Create Project" ng-disabled="!loginForm.$valid">
+			  </form>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+        <p>&copy; Company 2013</p>
+      </footer>
+
+   </div>

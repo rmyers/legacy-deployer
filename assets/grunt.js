@@ -3,6 +3,8 @@ var deps = [
   'js/vendor/jquery-*.js',
   'js/vendor/**/*.js',
   'bootstrap/js/bootstrap-modal.js',
+  'bootstrap/js/bootstrap-dropdown.js',
+  'bootstrap/js/bootstrap-carousel.js'
 ];
 
 var apps = [

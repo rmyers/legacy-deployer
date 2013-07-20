@@ -1,4 +1,5 @@
-
+   <div class="container-fluid">
+   	
       <div class="row-fluid">
         
         <div class="span10">
@@ -9,7 +10,7 @@
 	          </div>
           <div class="row-fluid">
             <div class="span4">
-              <h2><i class="icon-bullhorn"></i> Heading</h2>
+              <h2><i class="icon-dashboard"></i> Heading</h2>
               <div class="well">
               	
               <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
@@ -48,22 +49,15 @@
         <div class="span2">
           <div class="well sidebar-nav">
             <ul class="nav nav-list">
-              <li class="nav-header">Sidebar</li>
-              <li class="active"><a href="#"><i class="icon-cloud"></i> Link</a></li>
-              <li><a href="#"><i class="icon-cloud"></i> Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li class="nav-header">Sidebar</li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li class="nav-header">Sidebar</li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
+              <li class="nav-header">Projects</li>
+              <li ng-repeat="project in projects"><a ng-href="/project/{{ project.id }}"><i class="icon-cloud"></i> {{ project.name }}</a></li>
+              <form class="form" name="loginForm" ng-submit="submit()">
+			    <div class="alert alert-error" ng-show="error">
+			      {{ error }}
+			    </div>
+			    <input type="text" ng-model="project.name" class="input-block-level" placeholder="New Project" required />
+			    <input class="btn btn-small btn-primary" type="submit" value="Create Project" ng-disabled="!loginForm.$valid">
+			  </form>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -74,3 +68,5 @@
       <footer>
         <p>&copy; Company 2013</p>
       </footer>
+
+   </div>

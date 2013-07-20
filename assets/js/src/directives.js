@@ -15,6 +15,13 @@ angular.module('myApp.directives', []).
         });
     };
   }).
+  directive('carouselWidget', function() {
+  	return function(scope, elm, attr) {
+  		var el = $(elm[0]);
+  		el.carousel();
+  		console.log(el);
+  	};
+  }).
   directive('loginForm', function() {
   	return {
 	  	restrict: 'C',
